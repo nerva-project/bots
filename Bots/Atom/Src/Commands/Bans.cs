@@ -36,8 +36,13 @@ namespace Atom.Commands
             //So a mod to this code to split the ban list into smaller chunks may be appropriate, however the risk of 
             //exceeding the character limit is small, making this a job for another day
             StringBuilder sb = new StringBuilder();
-            foreach (string s in banList)
-                sb.AppendLine(s);
+            if (banList.Count > 0)
+            {
+                foreach (string s in banList)
+                    sb.AppendLine(s);
+            }
+            else
+                sb.AppendLine("Nothing here...");
 
             await DiscordResponse.Reply(msg, text: sb.ToString());
         }

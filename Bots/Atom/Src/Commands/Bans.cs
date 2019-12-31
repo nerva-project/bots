@@ -22,11 +22,13 @@ namespace Atom.Commands
                 RequestData rd = await Request.Http($"{sn}/api/daemon/get_bans/");
                 if (!string.IsNullOrEmpty(rd.ResultString))
                 {
-                    List<BanListItem> bl = JsonConvert.DeserializeObject<JsonResult<BanList>>(rd.ResultString).Result.Bans;
-
-                    foreach (var b in bl)
-                        if (!banList.Contains(b.Host))
-                            banList.Add(b.Host);
+                    var res = JsonConvert.DeserializeObject<JsonResult<BanList>>(rd.ResultString).Result;
+                    if (res.Bans != null)
+                    {
+                        foreach (var b in res.Bans)
+                            if (!banList.Contains(b.Host))
+                                banList.Add(b.Host);
+                    }
                 }
             }
 

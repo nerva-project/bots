@@ -1,0 +1,9 @@
+#!/bin/bash
+dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source ${dir}/keys
+
+outfile="fusion-keys"
+
+echo $(${dir}/Release/publish/StringEncrypter --password ${pass} --encrypt ${fusion_donate_wallet_key}) > ${outfile}
+echo $(${dir}/Release/publish/StringEncrypter --password ${pass} --encrypt ${fusion_user_wallet_key}) >> ${outfile}
+echo $(${dir}/Release/publish/StringEncrypter --password ${pass} --encrypt ${fusion_pid_key}) >> ${outfile}

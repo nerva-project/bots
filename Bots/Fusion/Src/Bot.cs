@@ -71,7 +71,12 @@ namespace Fusion
 			if (cmd["key-file"] != null)
 			{
 				string[] keys = File.ReadAllLines(cmd["key-file"].Value);
-				string keyFilePassword = PasswordPrompt.Get("Please enter the key file decryption password");
+				string keyFilePassword;
+
+				if (cmd["key-password"] != null)
+					keyFilePassword = cmd["key-password"].Value;
+				else
+					keyFilePassword = PasswordPrompt.Get("Please enter the key file decryption password");
 
 				donationWalletPassword = keys[0].Decrypt(keyFilePassword);
 				userWalletPassword = keys[1].Decrypt(keyFilePassword);

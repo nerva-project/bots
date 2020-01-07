@@ -1,10 +1,19 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AngryWasp.Helpers;
+using DnsClient;
 using Nerva.Bots.Plugin;
 
 namespace Atom
 {
+    public class SeedNodeCache
+    {
+        public ulong LastUpdate { get; set; } = 0;
+
+        public List<string> SeedNodes { get; set; } = new List<string>();
+    }
+
     public class AtomBotConfig : IBotConfig
     {
         public ulong BotId => 450609948246671360;
@@ -28,11 +37,26 @@ namespace Atom
         
         public string CmdPrefix => "!";
 
-        public static readonly string[] SeedNodes = new string[]
+        private static SeedNodeCache seedCache = new SeedNodeCache();
+
+        public static List<string> GetSeedNodes()
         {
-            "https://xnv1.getnerva.org",
-            "https://xnv2.getnerva.org"
-        };
+            ulong now = DateTimeHelper.TimestampNow();
+            if (now - seedCache.LastUpdate > 60 * 60 || seedCache.SeedNodes.Count == 0)
+            {
+                seedCache.SeedNodes.Clear();
+
+                var client = new LookupClient();
+                var records = client.Query("seed.getnerva.org", QueryType.TXT).Answers;
+
+                foreach (var r in records)
+                    seedCache.SeedNodes.Add(((DnsClient.Protocol.TxtRecord)r).Text.First());
+
+                seedCache.LastUpdate = now;
+            }
+            
+            return seedCache.SeedNodes;
+        }
     }
 
     class AtomBot : IBot
@@ -43,6 +67,7 @@ namespace Atom
 
         public void Init(CommandLineParser cmd)
         {
+            AtomBotConfig.GetSeedNodes();
         }
 
         public Task ClientReady()

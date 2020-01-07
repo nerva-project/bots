@@ -1,10 +1,19 @@
 #!/bin/bash
 dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-token=exV1CI00M4bKWKdXfeeBGsI1Oa3F9MOhN4u6Zt8IwdX5LJMkQ88+w/srABu9nu+t7o8gVShXIEVD9iIcZdBDnat7qJ0C7ZOsdYu6k7PpDtIaaCT+rbPvEirThHuZl0KZ
+bindir=${dir}/Release/publish
+source ${dir}/keys
 port_1=12656
 port_2=12657
 
-dotnet ${dir}/Release/publish/Nerva.Bots.dll --bot ${dir}/Release/publish/Fusion.dll \
---token ${token} --key-file ${dir}/fusion-keys --debug --debug-hide 13               \
---donation-wallet-file fusion-donation-wallet --donation-wallet-port ${port_1}       \
---user-wallet-file fusion-user-wallet --user-wallet-port ${port_2}                                      
+if ! [ -f ${dir}/fusion-keys ]; then
+	echo Generating fusiion key file
+	${dir}/gen-fusion-keys
+fi
+
+${bindir}/Nerva.Bots --bot ${bindir}/Fusion.dll										\
+--token $(${bindir}/StringEncrypter --password ${pass} --encrypt ${fusion_token})   \
+--key-file ${dir}/fusion-keys                                                       \
+--debug --debug-hide 13                                                             \
+--donation-wallet-file fusion-donation-wallet --donation-wallet-port ${port_1}      \
+--user-wallet-file fusion-user-wallet --user-wallet-port ${port_2}					\
+--password ${pass} --key-password ${key_pass}

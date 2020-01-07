@@ -12,9 +12,9 @@ namespace Atom.Commands
     [Command("tradeogre", "Get market info from TradeOgre")]
     public class TradeOgre : ICommand
     {
-        public async Task Process(SocketUserMessage msg)
+        public void Process(SocketUserMessage msg)
         {
-            RequestData rd = await Request.Http("https://tradeogre.com/api/v1/ticker/btc-xnv");
+            RequestData rd = Request.Http("https://tradeogre.com/api/v1/ticker/btc-xnv");
             if (!rd.IsError)
             {
                 var json = JsonConvert.DeserializeObject<MarketInfo>(rd.ResultString);
@@ -25,13 +25,13 @@ namespace Atom.Commands
                 .WithColor(Color.DarkGreen)
                 .WithThumbnailUrl("https://getnerva.org/content/images/tradeogre-logo.png");
 
-                em.AddField("Volume", Math.Round(json.Volume, 5));
+                em.AddField("Volume", Math.Round(json.Volume, 5), true);
                 em.AddField("Buy", json.Ask * 100000000.0d, true);
                 em.AddField("Sell", json.Bid * 100000000.0d, true);
                 em.AddField("High", json.High * 100000000.0d, true);
                 em.AddField("Low", json.Low * 100000000.0d, true);
 
-                await DiscordResponse.Reply(msg, embed: em.Build());
+                DiscordResponse.Reply(msg, embed: em.Build());
             }
         }
     }

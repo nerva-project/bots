@@ -11,9 +11,9 @@ namespace Atom.Commands
     [Command("coingecko", "Get info from CoinGecko")]
     public class CoinGecko : ICommand
     {
-        public async Task Process(SocketUserMessage msg)
+        public void Process(SocketUserMessage msg)
         {
-            RequestData rd = await Request.Http("https://api.coingecko.com/api/v3/coins/nerva?localization=false");
+            RequestData rd = Request.Http("https://api.coingecko.com/api/v3/coins/nerva?localization=false");
             if (!rd.IsError)
             {
                 var json = JsonConvert.DeserializeObject<CoinGeckoInfo>(rd.ResultString);
@@ -31,7 +31,7 @@ namespace Atom.Commands
                 em.AddField("Developer Score", json.DeveloperScore, true);
                 em.AddField("Public Interest Score", json.PublicInterestScore, true);
 
-                await DiscordResponse.Reply(msg, embed: em.Build());
+                DiscordResponse.Reply(msg, embed: em.Build());
             }
         }
     }

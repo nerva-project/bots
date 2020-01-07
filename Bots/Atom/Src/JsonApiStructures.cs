@@ -140,9 +140,6 @@ namespace Atom
         [JsonProperty("gui_version")]
         public string GuiVersion { get; set; }
 
-        [JsonProperty("binary_url")]
-        public string BinaryUrl { get; set; }
-
         [JsonProperty("windows")]
         public string WindowsLink { get; set; }
 
@@ -161,8 +158,11 @@ namespace Atom
         [JsonProperty("windows_gui")]
         public string WindowsGuiLink { get; set; }
 
-        [JsonProperty("bootstrap")]
-        public string[] BootstrapFiles { get; set; }
+        [JsonProperty("ledger")]
+        public string LedgerLink { get; set; }
+
+        [JsonProperty("quicksync")]
+        public string QuickSyncLink { get; set; }
     }
 
     [JsonObject]

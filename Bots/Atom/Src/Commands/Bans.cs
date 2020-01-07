@@ -11,15 +11,15 @@ namespace Atom.Commands
     [Command("bans", "Get a list of banned ip addresses")]
     public class Bans : ICommand
     {
-        public async Task Process(SocketUserMessage msg)
+        public void Process(SocketUserMessage msg)
         {
             //Use a HashSet here as the adding items is slower, but lookups to check for dups are 
             //orders of magnitude faster.
             HashSet<string> banList = new HashSet<string>();
 
-            foreach (var sn in AtomBotConfig.SeedNodes)
+            foreach (var s in AtomBotConfig.GetSeedNodes())
             {
-                RequestData rd = await Request.Http($"{sn}/api/daemon/get_bans/");
+                RequestData rd = Request.Http($"http://{s}/api/daemon/get_bans/");
                 if (!string.IsNullOrEmpty(rd.ResultString))
                 {
                     var res = JsonConvert.DeserializeObject<JsonResult<BanList>>(rd.ResultString).Result;
@@ -44,7 +44,7 @@ namespace Atom.Commands
             else
                 sb.AppendLine("Nothing here...");
 
-            await DiscordResponse.Reply(msg, text: sb.ToString());
+            DiscordResponse.Reply(msg, text: sb.ToString());
         }
     }
 }

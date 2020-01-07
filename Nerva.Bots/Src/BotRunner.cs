@@ -161,11 +161,15 @@ namespace Nerva.Bots
 				if (commands.Length == 0)
 					return;
 
+#pragma warning disable 4014
 				foreach (var c in commands)
-				{
 					if (Globals.Commands.ContainsKey(c))
-						await ((ICommand)Activator.CreateInstance(Globals.Commands[c])).Process(msg);
-				}
+					{
+						Task.Run(() => {
+							((ICommand)Activator.CreateInstance(Globals.Commands[c])).Process(msg);
+						});
+					}
+#pragma warning restore 4014
 			}
 			catch (Exception ex)
 			{

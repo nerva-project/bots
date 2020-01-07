@@ -38,7 +38,7 @@ namespace Fusion.Commands.Gaming
             Log.Write($"Existing lottery game loaded. Jackpot {currentGame.JackpotAmount}");
         }
 
-        public static async Task ProcessResults(Lottery sender)
+        public static void ProcessResults(Lottery sender)
         {
             //todo: post results in fusion channel
 
@@ -52,15 +52,25 @@ namespace Fusion.Commands.Gaming
 
             FusionBotConfig cfg = ((FusionBotConfig)Globals.Bot.Config);
 
+            string winnerList = "Lottery Winners: ";
+
             //pay minor prizes
             foreach (var w in wn)
             {
-                RequestError err = await AccountHelper.PayUser((double)sender.Parameters.MinorPrize, cfg.BotId, n[w]);
+                SocketUser winner = Globals.Client.GetUser(n[w]);
+                winnerList += $"{winner.Mention} ";
+
+                RequestError err = AccountHelper.PayUser((double)sender.Parameters.MinorPrize, cfg.BotId, n[w]);
                 if (err != null)
-                    await Sender.SendPrivateMessage(Globals.Client.GetUser(n[w]), $"You just won {sender.Parameters.MinorPrize}xnv in the lottery, but there was a problem with the payout. Please contact an admin and quote number `{tsNow}`");
+                    Sender.SendPrivateMessage(winner, $"You just won {sender.Parameters.MinorPrize}xnv in the lottery, but there was a problem with the payout. Please contact an admin and quote number `{tsNow}`");
                 else
-                    await Sender.SendPrivateMessage(Globals.Client.GetUser(n[w]), $"You just won {sender.Parameters.MinorPrize}xnv in the lottery.");
+                    Sender.SendPrivateMessage(winner, $"You just won {sender.Parameters.MinorPrize}xnv in the lottery.");
             }
+
+            winnerList += ":fireworks:";
+
+            foreach (var i in cfg.BotChannelIds)
+                ((ISocketMessageChannel)Globals.Client.GetChannel(i)).SendMessageAsync(winnerList);
 
             float jackpot = sender.JackpotAmount;
 
@@ -68,11 +78,11 @@ namespace Fusion.Commands.Gaming
             {
                 if (sender.JackpotNumber == w)
                 {
-                    RequestError err = await AccountHelper.PayUser((double)sender.JackpotAmount, cfg.BotId, n[w]);
+                    RequestError err = AccountHelper.PayUser((double)sender.JackpotAmount, cfg.BotId, n[w]);
                     if (err != null)
-                        await Sender.SendPrivateMessage(Globals.Client.GetUser(n[w]), $"You just won the lottery jackpot of {sender.JackpotAmount}xnv, but there was a problem with the payout. Please contact an admin and quote number `{tsNow}`");
+                        Sender.SendPrivateMessage(Globals.Client.GetUser(n[w]), $"You just won the lottery jackpot of {sender.JackpotAmount}xnv, but there was a problem with the payout. Please contact an admin and quote number `{tsNow}`");
                     else
-                        await Sender.SendPrivateMessage(Globals.Client.GetUser(n[w]), $"You just won the lottery jackpot of {sender.JackpotAmount}xnv.");
+                        Sender.SendPrivateMessage(Globals.Client.GetUser(n[w]), $"You just won the lottery jackpot of {sender.JackpotAmount}xnv.");
 
                     jackpot = 0;
                 }
@@ -127,11 +137,11 @@ namespace Fusion.Commands.Gaming
             return game;
         }
 
-        public async Task AllocateTickets(SocketUserMessage msg, int numRequested)
+        public void AllocateTickets(SocketUserMessage msg, int numRequested)
         {
             if (filled)
             {
-                await Sender.PublicReply(msg, "Oof. Looks like you missed out on this round.");
+                Sender.PublicReply(msg, "Oof. Looks like you missed out on this round.");
                 return;
             }
 
@@ -148,11 +158,11 @@ namespace Fusion.Commands.Gaming
             int[] allocatedNumbers = new int[r];
 
             FusionBotConfig cfg = ((FusionBotConfig)Globals.Bot.Config);
-            RequestError err = await AccountHelper.PayUser(r * LotteryManager.CurrentGame.Parameters.TicketCost, msg.Author.Id, cfg.BotId);
+            RequestError err = AccountHelper.PayUser(r * LotteryManager.CurrentGame.Parameters.TicketCost, msg.Author.Id, cfg.BotId);
 
             if (err != null)
             {
-                await Sender.PublicReply(msg, $"{msg.Author.Mention} There was an error paying for your tickets.");
+                Sender.PublicReply(msg, $"{msg.Author.Mention} There was an error paying for your tickets.");
                 return;
             }
 
@@ -172,20 +182,20 @@ namespace Fusion.Commands.Gaming
 
                 s = s.TrimEnd();
 
-                await Sender.PublicReply(msg, $"{msg.Author.Mention} Your lucky numbers are {s}");
+                Sender.PublicReply(msg, $"{msg.Author.Mention} Your lucky numbers are {s}");
 
                 //if we have allocated numbers here, we need to save this game
                 //then we can persist after a restart
                 new ObjectSerializer().Serialize(this, Path.Combine(Environment.CurrentDirectory, "lottery.xml"));
             }
             else
-                await Sender.PublicReply(msg, $"{msg.Author.Mention} I was unable to allocate you any numbers in this draw.");
+                Sender.PublicReply(msg, $"{msg.Author.Mention} I was unable to allocate you any numbers in this draw.");
 
             if (unAllocated.Count == 0)
             {
                 filled = true;
-                await Sender.PublicReply(msg, $"All tickets are sold. Drawing the lottery!");
-                await Draw();
+                Sender.PublicReply(msg, $"All tickets are sold. Drawing the lottery!");
+                Draw();
             }
         }
 
@@ -213,7 +223,7 @@ namespace Fusion.Commands.Gaming
             return s.TrimEnd();
         }
 
-        public async Task Draw()
+        public void Draw()
         {
             { //first round draw
                 List<int> allNumbers = new List<int>();
@@ -241,7 +251,7 @@ namespace Fusion.Commands.Gaming
                 }
             }
 
-            await LotteryManager.ProcessResults(this);
+            LotteryManager.ProcessResults(this);
         }
     }
 }

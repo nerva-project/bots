@@ -1,0 +1,7 @@
+#!/bin/bash
+dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+bindir=${dir}/Release/publish
+
+${bindir}/Magellan.Server               \
+--geo-api-key-file ${dir}/geo-api-key   \
+--access-keys ${dir}/magellan-api-keys

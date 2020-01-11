@@ -1,5 +1,7 @@
 Bin/fusion-keys
 Bin/keys
+Bin/geo-api-key
+Bin/magellan-api-keys
 Bin/*.xml
 
 **/Bin/Debug

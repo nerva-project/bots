@@ -67,7 +67,7 @@ namespace Fusion.Commands
                 msg.AddReactionAsync(new Emoji("💸"));
 
                 if (recipient.Id != cfg.BotId) //exception thrown if trying to send a DM to fusion, so skip
-                    Sender.SendPrivateMessage(Globals.Client.GetUser(recipient.Id), $"{msg.Author.Mention} sent you {r.Amount.FromAtomicUnits()} xnv");
+                    Sender.SendPrivateMessage(Globals.Client.GetUser(recipient.Id), $"{msg.Author.Username} sent you {r.Amount.FromAtomicUnits()} xnv");
             },
             (RequestError e) =>
             {

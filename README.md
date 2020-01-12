@@ -26,55 +26,24 @@
 
 Binaries will be found at `~/bots/Bin/Release/publish`
 
-#### Create your encrypted tokens
+#### Get your bot token and create your keyfile
 
-Go to Discord Developers Portal and register a bot and grab the token. Use the encrypt-tokens script below to create data required for a Keyfile.  Make Sure it is in the same directory as StringEncrypter.dll
+Go to Discord Developers Portal and register a bot and grab the token. 
 
-```
-#!/bin/bash
-dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
-#This is the master password. 
-pass=""
-
-#Bot token
-bot_token=""
-
-#This key is used to encrypt payment id's that users use to identify themselves as donors
-pid_key=""
-
-#this is the password used to create the donation wallet
-donate_wallet_key=""
-
-#this is the password used to create the user wallet
-user_wallet_key="YEG42b96"
-
-echo "Bot Token:"
-dotnet ./StringEncrypter.dll --password ${pass} --encrypt ${bot_token}
-
-echo "==========================================="
-echo "Key file contents"
-echo "-------------------------------------------"
-dotnet ./StringEncrypter.dll --password ${pass} --encrypt ${pid_key}
-dotnet ./StringEncrypter.dll --password ${pass} --encrypt ${donate_wallet_key}
-dotnet ./StringEncrypter.dll --password ${pass} --encrypt ${user_wallet_key}
-echo "-------------------------------------------"
-```
-#### Output will look like this 
+Below is an example of a keyfile.  Edit this with the required info.  Save it as `keys`
 
 ```
-Bot Token:
-2ZsXr5Tl3uiHWOMKxnjdC+Cnz1l911zLUf7owLxwvh1iQJV2EBcEMulNkzhXR7PqqAzIW0k143et11VvZCoMF09fiYtOHv55js9+CKmMfcMilaLrCiDXOVqwpR18JZQ1
-===========================================
-Key file contents
--------------------------------------------
-3fUxzrZrcJjue2zzkd/IEb/MjrmnQHcbLkuPyB+VkC6x0x1YHh4LasYdSFomRkmz
-eOd92NwcCzZOiTiNC7esU8IGhyXYGxUx9plaM7YEE//5hwr+cfoaZIEYun+MmOMj
-6/dKCWNyfKE7S3R2eZqOx5F/SHh3YyGcqKyLC9QWEL6cj4Q3zsBzSVMyMkWflsU8
--------------------------------------------
+pass="This is the password required by the bots"
+key_pass=${pass} # Specify a new password for maximum security. This password is required to decrypt the fusion key file
+fusion_pid_key=""
+fusion_donate_wallet_key=""
+fusion_user_wallet_key=""
+
+atom_token=""
+fusion_token=""
 ```
 
-Take the Keyfile Contents and place in a file called 'keyfile' with the binaries in Bin/Release/publish
+The file should be saved with the binaries in `Bin/Release/publish`
 
 #### It's content should look like:
 

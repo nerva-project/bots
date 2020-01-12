@@ -45,13 +45,6 @@ fusion_token=""
 
 The file should be saved with the binaries in `Bin/Release/publish`
 
-#### It's content should look like:
-
-```
-3fUxzrZrcJjue2zzkd/IEb/MjrmnQHcbLkuPyB+VkC6x0x1YHh4LasYdSFomRkmz
-eOd92NwcCzZOiTiNC7esU8IGhyXYGxUx9plaM7YEE//5hwr+cfoaZIEYun+MmOMj
-6/dKCWNyfKE7S3R2eZqOx5F/SHh3YyGcqKyLC9QWEL6cj4Q3zsBzSVMyMkWflsU8
-```
 
 #### Now Create a directory in the same Binary directory called 'Wallets'
 You need 2 json files here as well as 2 wallets.  user.json and donation.json / user.wallet and donation.wallet

@@ -33,9 +33,9 @@ namespace MagellanServer
             else
                 dataDir = Environment.CurrentDirectory;
 
-            Log.Instance.Write($"USing data directory {dataDir}");
+            Log.Instance.Write($"Using data directory {dataDir}");
 
-            if (File.Exists("NodeMap.xml"))
+            if (File.Exists(Path.Combine(dataDir, "NodeMap.xml")))
             {
                 Log.Instance.Write("Loading node map info");
                 ds = new ObjectSerializer().Deserialize<NodeMapDataStore>(XDocument.Load(Path.Combine(dataDir, "NodeMap.xml")));

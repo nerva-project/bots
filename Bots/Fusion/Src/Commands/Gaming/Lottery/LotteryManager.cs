@@ -41,16 +41,14 @@ namespace Fusion.Commands.Gaming
         public static void ProcessResults(Lottery sender)
         {
             //todo: post results in fusion channel
+            FusionBotConfig cfg = ((FusionBotConfig)Globals.Bot.Config);
 
             ulong tsNow = DateTimeHelper.TimestampNow();
             //save the game in case of dispute or a problem paying out
-            string savedGameName = $"{tsNow}.xml";
-            new ObjectSerializer().Serialize(sender, savedGameName);
+            new ObjectSerializer().Serialize(sender, Path.Combine(cfg.DataDir, $"{tsNow}.xml"));
 
             var n = sender.Numbers;
             var wn = sender.WinningNumbers;
-
-            FusionBotConfig cfg = ((FusionBotConfig)Globals.Bot.Config);
 
             string winnerList = "Lottery Winners: ";
 
@@ -186,7 +184,7 @@ namespace Fusion.Commands.Gaming
 
                 //if we have allocated numbers here, we need to save this game
                 //then we can persist after a restart
-                new ObjectSerializer().Serialize(this, Path.Combine(Environment.CurrentDirectory, "lottery.xml"));
+                new ObjectSerializer().Serialize(this, Path.Combine(cfg.DataDir, "lottery.xml"));
             }
             else
                 Sender.PublicReply(msg, $"{msg.Author.Mention} I was unable to allocate you any numbers in this draw.");

@@ -46,6 +46,8 @@ namespace Fusion
         public string DonationPaymentIdKey { get; set; } = null;
 
 		public Dictionary<ulong, Tuple<uint, string>> UserWalletCache { get; } = new Dictionary<ulong, Tuple<uint, string>>();
+
+		public string DataDir { get; set; } = Environment.CurrentDirectory;
     }
 
     public class FusionBot : IBot
@@ -67,6 +69,11 @@ namespace Fusion
 
 			string donationWalletFile = string.Empty, donationWalletPassword = string.Empty;
 			string userWalletFile = string.Empty, userWalletPassword = string.Empty;
+
+			if (cmd["data-dir"] != null)
+                cfg.DataDir = cmd["data-dir"].Value;
+            else
+                cfg.DataDir = Environment.CurrentDirectory;
 
 			if (cmd["key-file"] != null)
 			{
@@ -97,7 +104,7 @@ namespace Fusion
 			if (cmd["user-wallet-file"] != null)
 				userWalletFile = cmd["user-wallet-file"].Value;
 
-			string jsonFile = Path.Combine(Environment.CurrentDirectory, $"Wallets/{donationWalletFile}.json");
+			string jsonFile = Path.Combine(cfg.DataDir, $"{donationWalletFile}.json");
 			Log.Write($"Loading Wallet JSON: {jsonFile}");
 			cfg.AccountJson = JsonConvert.DeserializeObject<AccountJson>(File.ReadAllText(jsonFile));
 
@@ -164,9 +171,7 @@ namespace Fusion
 			},
 			cfg.WalletHost, cfg.UserWalletPort).Run();
 
-			//todo: Check if an existing game is still running after restart and load that instead
-
-			string fp = Path.Combine(Environment.CurrentDirectory, "lottery.xml");
+			string fp = Path.Combine(cfg.DataDir, "lottery.xml");
 
 			if (File.Exists(fp))
 				LotteryManager.Load(fp);

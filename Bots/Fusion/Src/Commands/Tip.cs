@@ -36,7 +36,7 @@ namespace Fusion.Commands
                     else
                     {
                         string address = AccountHelper.CreateNewAccount(m);
-                        if (!string.IsNullOrEmpty(address))
+                        if (string.IsNullOrEmpty(address))
                         {
                             Sender.PrivateReply(msg, $"{m.Mention} does not have a wallet. They cannot take your tip.");
                             Sender.SendPrivateMessage(Globals.Client.GetUser(m.Id), $"{msg.Author.Mention} tried to send you {amount} xnv, but you don't have a wallet");

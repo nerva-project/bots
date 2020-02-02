@@ -35,7 +35,7 @@ namespace Fusion
 
         public string CmdPrefix => "$";
 
-		public string WalletHost { get; } = "http://127.0.0.1";
+		public string WalletHost { get; } = "127.0.0.1";
 
         public uint DonationWalletPort { get; set; } = (uint)MathHelper.Random.NextInt(10000, 50000);
 

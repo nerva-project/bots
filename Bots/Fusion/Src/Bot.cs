@@ -83,6 +83,9 @@ namespace Fusion
 				if (cmd["key-password"] != null)
 					keyFilePassword = cmd["key-password"].Value;
 				else
+					keyFilePassword = Environment.GetEnvironmentVariable("FUSION_KEY_PASSWORD");
+
+				if (string.IsNullOrEmpty(keyFilePassword))	
 					keyFilePassword = PasswordPrompt.Get("Please enter the key file decryption password");
 
 				donationWalletPassword = keys[0].Decrypt(keyFilePassword);

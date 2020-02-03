@@ -1,0 +1,13 @@
+#!/bin/bash
+dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+root_dir=$(dirname $dir)
+
+source ${root_dir}/Data/keys
+
+if [ -f "${root_dir}/Data/env" ]; then
+    echo "env file already exists"
+else
+    echo "# Environment Variables" > ${root_dir}/Data/env
+    echo "BOT_TOKEN_PASSWORD=${pass}" >> "${root_dir}/Data/env"
+    echo "FUSION_KEY_PASSWORD=${key_pass}" >> "${root_dir}/Data/env"
+fi

@@ -6,11 +6,12 @@ port_1=12656
 port_2=12657
 
 if ! [ -f ${dir}/fusion-keys ]; then
-	echo Generating fusiion key file
+	echo Generating fusion key file
 	${dir}/gen-fusion-keys
 fi
 
 ${bindir}/Nerva.Bots --bot ${bindir}/Fusion.dll										\
+--data-dir ~/.bots/fusion															\
 --token $(${bindir}/StringEncrypter --password ${pass} --encrypt ${fusion_token})   \
 --key-file ${dir}/fusion-keys                                                       \
 --debug --debug-hide 13                                                             \

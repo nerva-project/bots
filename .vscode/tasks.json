@@ -6,7 +6,7 @@
             "type": "shell",
             "command": "dotnet",
             "args": [
-                "publish",
+                "build",
                 "/property:GenerateFullPaths=true",
                 "/property:Configuration=Debug",
                 "/property:TrimUnusedDependencies=true"

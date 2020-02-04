@@ -1,16 +1,18 @@
 {
     "version": "0.2.0",
     "configurations": [
+
         {
             "name": "Atom",
             "type": "coreclr",
             "request": "launch",
-            "program": "${workspaceRoot}/Bin/Debug/publish/Nerva.Bots",
+            "program": "${workspaceRoot}/Bin/Debug/Nerva.Bots",
             "cwd": "${workspaceRoot}/Bin",
             "console": "integratedTerminal",
             "preLaunchTask": "build-debug",
+            "envFile": "${workspaceFolder}/Data/env",
             "args":[
-                "--bot", "${workspaceRoot}/Bin/Debug/publish/Atom.dll",
+                "--bot", "${workspaceRoot}/Bin/Debug/Atom.dll",
                 "--token", "zUe8edTJjCydC+Zy5IJclKPNlVmTWT46deJBLmzu09xZ5/D6Gclh32nig0jJ1RWm1viJkxoCm3/6Fhle1xakrk9sfP4vLiiE+D+yt2ZMClkB62N3QFrebUTVLOmlWHc6",
             ]
         },
@@ -18,9 +20,10 @@
             "name": "Fusion",
             "type": "coreclr",
             "request": "launch",
-            "program": "${workspaceRoot}/Bin/Debug/publish/Nerva.Bots",
+            "program": "${workspaceRoot}/Bin/Debug/Nerva.Bots",
             "cwd": "${workspaceRoot}/Bin",
-            "console": "externalTerminal",
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen",
             "preLaunchTask": "build-and-debug",
             "envFile": "${workspaceFolder}/Data/env",
             "args":[
@@ -33,12 +36,41 @@
             ]
         },
         {
+            "name": "Fusion Wallet Backup",
+            "type": "coreclr",
+            "request": "launch",
+            "program": "${workspaceRoot}/Bin/Debug/FusionWalletBackup",
+            "cwd": "${workspaceRoot}/Bin",
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen",
+            "preLaunchTask": "build-and-debug",
+            "envFile": "${workspaceFolder}/Data/env",
+            "args":[
+                "--port", "13333", "--backup", "--file", "${workspaceFolder}/Data/fusion/wallet.backup"
+            ]
+        },
+        {
+            "name": "Fusion Wallet Restore",
+            "type": "coreclr",
+            "request": "launch",
+            "program": "${workspaceRoot}/Bin/Debug/FusionWalletBackup",
+            "cwd": "${workspaceRoot}/Bin",
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen",
+            "preLaunchTask": "build-and-debug",
+            "envFile": "${workspaceFolder}/Data/env",
+            "args":[
+                "--port", "13333", "--restore", "--file", "${workspaceFolder}/Data/fusion/wallet.backup"
+            ]
+        },
+        {
             "name": "Magellan",
             "type": "coreclr",
             "request": "launch",
             "program": "${workspaceRoot}/Bin/Debug/Magellan.Server.dll",
             "cwd": "${workspaceRoot}/Bin",
-            "console": "externalTerminal",
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen",
             "preLaunchTask": "build-debug",
             "args":[
                 "--geo-api-key-file", "${workspaceRoot}/Bin/geo-api-key",

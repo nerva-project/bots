@@ -21,7 +21,6 @@
     <PackageReference Include="Portable.BouncyCastle" Version="*"/>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="../../External/AngryWasp.Serializer/Src/AngryWasp.Serializer/AngryWasp.Serializer.csproj" />
     <ProjectReference Include="../../Nerva.Bots/Nerva.Bots.csproj" />
   </ItemGroup>
 </Project>

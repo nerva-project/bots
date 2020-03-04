@@ -1,14 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Xml.Linq;
 using AngryWasp.Helpers;
 using AngryWasp.Serializer;
 using Discord.WebSocket;
 using Nerva.Bots;
-using Nerva.Bots.Helpers;
 using Nerva.Rpc;
 using Log = Nerva.Bots.Helpers.Log;
 
@@ -43,7 +40,7 @@ namespace Fusion.Commands.Gaming
             //todo: post results in fusion channel
             FusionBotConfig cfg = ((FusionBotConfig)Globals.Bot.Config);
 
-            ulong tsNow = DateTimeHelper.TimestampNow();
+            ulong tsNow = DateTimeHelper.TimestampNow;
             //save the game in case of dispute or a problem paying out
             new ObjectSerializer().Serialize(sender, Path.Combine(cfg.DataDir, $"{tsNow}.xml"));
 

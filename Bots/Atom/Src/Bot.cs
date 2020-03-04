@@ -41,7 +41,7 @@ namespace Atom
 
         public static List<string> GetSeedNodes()
         {
-            ulong now = DateTimeHelper.TimestampNow();
+            ulong now = DateTimeHelper.TimestampNow;
             if (now - seedCache.LastUpdate > 60 * 60 || seedCache.SeedNodes.Count == 0)
             {
                 seedCache.SeedNodes.Clear();

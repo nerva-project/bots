@@ -25,7 +25,7 @@ namespace Tools
 
             uint port = uint.Parse(cmd["port"].Value);
 
-            string filePath = cmd["file"] == null ? $"fusion-wallet.backup.{DateTimeHelper.TimestampNow()}" : cmd["file"].Value;
+            string filePath = cmd["file"] == null ? $"fusion-wallet.backup.{DateTimeHelper.TimestampNow}" : cmd["file"].Value;
 
             if (cmd["backup"] != null)
             {

@@ -1,7 +1,6 @@
 {
     "version": "0.2.0",
     "configurations": [
-
         {
             "name": "Atom",
             "type": "coreclr",
@@ -9,6 +8,7 @@
             "program": "${workspaceRoot}/Bin/Debug/Nerva.Bots",
             "cwd": "${workspaceRoot}/Bin",
             "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen",
             "preLaunchTask": "build-debug",
             "envFile": "${workspaceFolder}/Data/env",
             "args":[

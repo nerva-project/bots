@@ -19,13 +19,17 @@ namespace Fusion.Commands.Gaming
 
         public static void Start()
         {
+            FusionBotConfig cfg = ((FusionBotConfig)Globals.Bot.Config);
             currentGame = Lottery.New(GameParameters.StandardGame, 0);
+            new ObjectSerializer().Serialize(currentGame, Path.Combine(cfg.DataDir, "lottery.xml"));
             Log.Write($"New lottery game started. Jackpot {currentGame.JackpotAmount}");
         }
 
         public static void Restart(float jackpot)
         {
+            FusionBotConfig cfg = ((FusionBotConfig)Globals.Bot.Config);
             currentGame = Lottery.New(GameParameters.StandardGame, jackpot);
+            new ObjectSerializer().Serialize(currentGame, Path.Combine(cfg.DataDir, "lottery.xml"));
             Log.Write($"New lottery game started. Jackpot {currentGame.JackpotAmount}");
         }
 
@@ -47,6 +51,8 @@ namespace Fusion.Commands.Gaming
             var n = sender.Numbers;
             var wn = sender.WinningNumbers;
 
+            Log.Write("Sending DM to each lottery winner");
+
             string winnerList = "Lottery Winners: ";
 
             //pay minor prizes
@@ -64,15 +70,20 @@ namespace Fusion.Commands.Gaming
 
             winnerList += ":fireworks:";
 
+            Log.Write("Publishing lottery winners");
+
             foreach (var i in cfg.BotChannelIds)
                 ((ISocketMessageChannel)Globals.Client.GetChannel(i)).SendMessageAsync(winnerList);
 
             float jackpot = sender.JackpotAmount;
 
+            Log.Write("Checking jackpot");
+
             foreach (var w in wn)
             {
                 if (sender.JackpotNumber == w)
                 {
+                    Log.Write("Jackpot winner");
                     RequestError err = AccountHelper.PayUser((double)sender.JackpotAmount, cfg.BotId, n[w]);
                     if (err != null)
                         Sender.SendPrivateMessage(Globals.Client.GetUser(n[w]), $"You just won the lottery jackpot of {sender.JackpotAmount}xnv, but there was a problem with the payout. Please contact an admin and quote number `{tsNow}`");
@@ -82,7 +93,8 @@ namespace Fusion.Commands.Gaming
                     jackpot = 0;
                 }
             }
-
+            
+            Log.Write("Restarting lottery");
             Restart(jackpot);
         }
     }

@@ -33,7 +33,7 @@ namespace MagellanServer
     {
         public static bool HttpRequest(string ip, out string returnString)
         {
-            string url = $"https://api.ipgeolocation.io/ipgeo?apiKey={ApiKey}&ip={ip}&fields=latitude,longitude,continent_code,country_code2";
+            string url = $"https://tools.keycdn.com/geo.json?host={ip}";
 
             try
             {
@@ -58,17 +58,10 @@ namespace MagellanServer
             }
         }
 
-        public static string ApiKey { get; set; } = null;
-
         public static bool Get(string ip, out float latitude, out float longitude, out string continentCode, out string countryCode)
         {
             latitude = longitude = 0;
             continentCode = countryCode = "-";
-            if (string.IsNullOrEmpty(ApiKey))
-            {
-                Log.Instance.Write(Log_Severity.Error, "Geolocation API key not provided");
-                return false;
-            }
 
             if (!Regex.IsMatch(ip, @"^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$"))
             {
@@ -82,6 +75,14 @@ namespace MagellanServer
                 HttpRequest(ip, out returnJson);
 
                 dynamic result = JObject.Parse(returnJson);
+
+                if (result == null || result.data == null || result.data.geo == null)
+                {
+                    Log.Instance.Write(Log_Severity.Error, "Invalid API result");
+                    return false;
+                }
+
+                result = result.data.geo;
 
                 if (result.ip == null || result.ip.Value != ip)
                 {
@@ -105,7 +106,7 @@ namespace MagellanServer
                 if (result.continent_code != null && !string.IsNullOrEmpty(result.continent_code.Value))
                     continentCode = result.continent_code.Value;
 
-                if (result.country_code2 != null && !string.IsNullOrEmpty(result.country_code2.Value))
+                if (result.country_code != null && !string.IsNullOrEmpty(result.country_code.Value))
                     countryCode = result.country_code2.Value;
 
                 return true;

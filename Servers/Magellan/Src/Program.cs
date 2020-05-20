@@ -45,38 +45,12 @@ namespace MagellanServer
                     File.WriteAllText("/var/www/html/nodemap.json", $"{{\"status\":\"OK\",\"result\":{ds.FetchAll()}}}\r\n");
             }
 
-            string apiKey = null;
-            List<string> allowedKeys = new List<string>();
-
-            if (cmd["geo-api-key"] != null)
-			{
-				Log.Instance.Write("Geolocation API key loaded from command line");
-				apiKey = cmd["geo-api-key"].Value;
-			}
-
-			if (apiKey == null && cmd["geo-api-key-file"] != null)
-			{
-                //todo: check file exists
-				Log.Instance.Write("Geolocation API key loaded from file");
-				apiKey = File.ReadAllText(cmd["geo-api-key-file"].Value);
-			}
-
-			if (apiKey == null)
-			{
-				Log.Instance.Write(Log_Severity.Fatal, "Geolocation API key not provided!");
-				Environment.Exit(0);
-			}
-			else
-				Log.Instance.Write($"Loaded Geolocation API key {apiKey}");
-
             if (cmd["access-keys"] != null)
 			{
                 //todo: check file exists
                 Log.Instance.Write("Access keys loaded from file");
 				Config.AllowedKeys = File.ReadAllLines(cmd["access-keys"].Value).ToList();
 			}    
-
-            GeoLocator.ApiKey = apiKey;
 
             int port = DEFAULT_PORT;
 

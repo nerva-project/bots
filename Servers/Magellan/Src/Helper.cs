@@ -96,8 +96,10 @@ namespace MagellanServer
                     return false;
                 }
 
-                if (!float.TryParse(result.latitude.Value, out latitude) ||
-                    !float.TryParse(result.longitude.Value, out longitude))
+                Log.Instance.Write($"{result.latitude.Value}, {result.longitude.Value}");
+
+                if (!float.TryParse(result.latitude.Value.ToString(), out latitude) ||
+                    !float.TryParse(result.longitude.Value.ToString(), out longitude))
                 {
                     Log.Instance.Write(Log_Severity.Error, "Failed to parse latitude and/or longituide");
                     return false;

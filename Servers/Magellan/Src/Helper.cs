@@ -96,8 +96,6 @@ namespace MagellanServer
                     return false;
                 }
 
-                Log.Instance.Write($"{result.latitude.Value}, {result.longitude.Value}");
-
                 if (!float.TryParse(result.latitude.Value.ToString(), out latitude) ||
                     !float.TryParse(result.longitude.Value.ToString(), out longitude))
                 {
@@ -109,7 +107,7 @@ namespace MagellanServer
                     continentCode = result.continent_code.Value;
 
                 if (result.country_code != null && !string.IsNullOrEmpty(result.country_code.Value))
-                    countryCode = result.country_code2.Value;
+                    countryCode = result.country_code.Value;
 
                 return true;
 

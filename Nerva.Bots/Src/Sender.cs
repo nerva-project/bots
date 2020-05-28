@@ -3,7 +3,7 @@ using AngryWasp.Logger;
 using Discord;
 using Discord.WebSocket;
 
-namespace Fusion
+namespace Nerva.Bots
 {
     public static class Sender
     {
@@ -21,7 +21,7 @@ namespace Fusion
             }
             catch (Exception)
             {
-                Nerva.Bots.Helpers.Log.Write(Log_Severity.Warning, $"Sending message to {user.Username} failed");
+                Helpers.Log.Write(Log_Severity.Warning, $"Sending message to {user.Username} failed");
             }
         }
 
@@ -43,7 +43,7 @@ namespace Fusion
             }
             catch (Exception)
             {
-                Nerva.Bots.Helpers.Log.Write(Log_Severity.Warning, $"Sending message to {userMsg.Author.Username} failed");
+                Helpers.Log.Write(Log_Severity.Warning, $"Sending message to {userMsg.Author.Username} failed");
             }
         }
     }

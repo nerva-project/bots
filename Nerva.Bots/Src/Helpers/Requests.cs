@@ -101,16 +101,16 @@ namespace Nerva.Bots.Helpers
 
                 if (msg.Channel.GetType() != typeof(SocketDMChannel))
                 {
-                    bool isRole = false;
+                    bool isBotCommander = false;
                     var userRoles = ((SocketGuildUser)msg.Author).Roles;
                     foreach(SocketRole role in userRoles)
-                        if (Globals.Bot.Config.DevRoleIds.Contains(role.Id))
+                        if (Globals.Bot.Config.BotCommanderRoleIds.Contains(role.Id))
                         {
-                            isRole = true;
+                            isBotCommander = true;
                             break;
                         }
                     
-                    if (isRole)
+                    if (isBotCommander)
                     {
                         msg.Channel.SendMessageAsync(text, false, embed);
                         return;

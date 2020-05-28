@@ -1,4 +1,5 @@
 using Discord.WebSocket;
+using Nerva.Bots;
 using Nerva.Bots.Plugin;
 
 namespace Fusion.Commands.Gaming

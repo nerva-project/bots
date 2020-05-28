@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AngryWasp.Helpers;
 using DnsClient;
+using Nerva.Bots;
 using Nerva.Bots.Plugin;
 
 namespace Atom
@@ -18,21 +19,26 @@ namespace Atom
     {
         public ulong BotId => 450609948246671360;
 
+        public ulong ServerOwnerId => 407511685134549003;
+
+        public ulong ServerId => 439649936414474256;
+
         public List<ulong> BotChannelIds => new List<ulong>
 		{
 			450660331405049876, //Atom
-			595232529456562198, //CB-General
-			595231506209701908, //CB-ST
             504717279573835832, //AM-XNV
 			509444814404714501, //AM-Bots
-            510621605479710720, //LB-General
 		};
 
-        public List<ulong> DevRoleIds => new List<ulong>
+        public List<ulong> ServerAdminRoleIds => new List<ulong>
+		{
+			715494617767739475, //NV-HelloAdmin
+		};
+
+        public List<ulong> BotCommanderRoleIds => new List<ulong>
 		{
 			595498219987927050, //NV-BotCommander
             595495919097741322, //AM-BotCommander
-            595495392632766474, //LB-BotCommander
 		};
         
         public string CmdPrefix => "!";
@@ -72,6 +78,11 @@ namespace Atom
 
         public Task ClientReady()
         {
+            Globals.Client.UserJoined += (u) =>
+            {
+                Sender.SendPrivateMessage(u, "Reply to this message with `!verify` to unlock the Nerva server. Or not...");
+                return Task.CompletedTask;
+            };
             return Task.CompletedTask;
         }
     }

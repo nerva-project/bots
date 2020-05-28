@@ -7,11 +7,14 @@ namespace Nerva.Bots.Plugin
         //Id of the bot user
         ulong BotId { get; }
 
-        //channels this bot is permitted to post in
+        ulong ServerOwnerId { get; }
+
+        List<ulong> ServerAdminRoleIds { get; }
+
         List<ulong> BotChannelIds { get; }
 
         //Anyone in one of these roles can issue commands outside the restricted channels
-        List<ulong> DevRoleIds { get; }
+        List<ulong> BotCommanderRoleIds { get; }
         
 		string CmdPrefix { get; }
     }

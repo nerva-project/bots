@@ -15,11 +15,10 @@ namespace Fusion.Commands
         {
             FusionBotConfig cfg = ((FusionBotConfig)Globals.Bot.Config);
 
-            //can only be run by angrywasp
-            //todo: remove hard coded user id
-            if (msg.Author.Id != 407511685134549003)
+            //can only be run by the server owner
+            if (msg.Author.Id != cfg.ServerOwnerId)
             {
-                Sender.PublicReply(msg, "No rescan for you!");
+                Sender.PublicReply(msg, "This command is not for you!");
                 return;
             }
 

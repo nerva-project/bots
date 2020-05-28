@@ -9,7 +9,7 @@
             "cwd": "${workspaceRoot}/Bin",
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen",
-            "preLaunchTask": "build-debug",
+            "preLaunchTask": "linux-debug",
             "envFile": "${workspaceFolder}/Data/env",
             "args":[
                 "--bot", "${workspaceRoot}/Bin/Debug/Atom.dll",

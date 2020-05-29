@@ -146,6 +146,11 @@ namespace Nerva.Bots
 
 			client.MessageReceived += MessageReceived;
 			client.Ready += ClientReady;
+			client.Disconnected += (e) =>
+			{
+				Environment.Exit(1);
+				return Task.CompletedTask;
+			};
 
 			await Task.Delay(-1);
         }

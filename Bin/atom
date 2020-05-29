@@ -3,7 +3,13 @@ dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 bindir=${dir}/Release/publish
 source ${dir}/keys
 
-${bindir}/Nerva.Bots                                                                \
---bot ${bindir}/Atom.dll                                                            \
---token $(${bindir}/StringEncrypter --password ${pass} --encrypt ${atom_token})     \
---password ${pass}
+while true
+do
+    ${bindir}/Nerva.Bots                                                                \
+    --bot ${bindir}/Atom.dll                                                            \
+    --token $(${bindir}/StringEncrypter --password ${pass} --encrypt ${atom_token})     \
+    --password ${pass}
+
+    sleep 1
+done
+

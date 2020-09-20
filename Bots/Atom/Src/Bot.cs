@@ -71,7 +71,7 @@ namespace Atom
 
         public IBotConfig Config => cfg;
 
-        public void Init(CommandLineParser cmd)
+        public void Init(Arguments args)
         {
             AtomBotConfig.GetSeedNodes();
         }

@@ -21,8 +21,7 @@
     <PackageReference Include="Discord.Net" Version="*"/>
     <PackageReference Include="Newtonsoft.Json" Version="*"/>
     <PackageReference Include="AngryWasp.Serializer" Version="*"/>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="../External/Nerva.Rpc.CSharp/Src/Nerva.Rpc/Nerva.Rpc.csproj"/>
+    <PackageReference Include="AngryWasp.Cli" Version="*"/>
+    <PackageReference Include="Nerva.Rpc.CSharp" Version="*"/>
   </ItemGroup>
 </Project>

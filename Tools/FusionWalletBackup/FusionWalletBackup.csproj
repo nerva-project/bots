@@ -18,6 +18,7 @@
     <OutputPath>../../Bin/$(Configuration)</OutputPath>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="../../External/Nerva.Rpc.CSharp/Src/Nerva.Rpc/Nerva.Rpc.csproj" />
+    <PackageReference Include="Nerva.Rpc.CSharp" Version="*"/>
+    <PackageReference Include="AngryWasp.Cli" Version="*"/>
   </ItemGroup>
 </Project>

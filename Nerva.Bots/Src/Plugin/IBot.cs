@@ -1,11 +1,11 @@
 using System.Threading.Tasks;
-using AngryWasp.Helpers;
+using AngryWasp.Cli.Args;
 
 namespace Nerva.Bots.Plugin
 {
     public interface IBot
     {
-        void Init(CommandLineParser cmd);
+        void Init(Arguments args);
 
         Task ClientReady();
 

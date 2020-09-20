@@ -19,6 +19,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Portable.BouncyCastle" Version="*"/>
+    <PackageReference Include="AngryWasp.Cli" Version="*"/>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../../Nerva.Bots/Nerva.Bots.csproj" />

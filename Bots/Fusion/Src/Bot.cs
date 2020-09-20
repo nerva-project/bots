@@ -9,6 +9,8 @@ using Newtonsoft.Json;
 using Log = Nerva.Bots.Helpers.Log;
 using System.Collections.Generic;
 using Fusion.Commands.Gaming;
+using AngryWasp.Cli;
+using AngryWasp.Cli.Args;
 
 namespace Fusion
 {
@@ -60,31 +62,31 @@ namespace Fusion
 
         public Task ClientReady() => Task.CompletedTask;
 
-        public void Init(CommandLineParser cmd)
+        public void Init(Arguments args)
         {
 			AngryWasp.Serializer.Serializer.Initialize();
 
-            if (cmd["donation-wallet-port"] != null)
-				cfg.DonationWalletPort = uint.Parse(cmd["donation-wallet-port"].Value);
+            if (args["donation-wallet-port"] != null)
+				cfg.DonationWalletPort = uint.Parse(args["donation-wallet-port"].Value);
 
-			if (cmd["user-wallet-port"] != null)
-				cfg.UserWalletPort = uint.Parse(cmd["user-wallet-port"].Value);
+			if (args["user-wallet-port"] != null)
+				cfg.UserWalletPort = uint.Parse(args["user-wallet-port"].Value);
 
 			string donationWalletFile = string.Empty, donationWalletPassword = string.Empty;
 			string userWalletFile = string.Empty, userWalletPassword = string.Empty;
 
-			if (cmd["data-dir"] != null)
-                cfg.DataDir = cmd["data-dir"].Value;
+			if (args["data-dir"] != null)
+                cfg.DataDir = args["data-dir"].Value;
             else
                 cfg.DataDir = Environment.CurrentDirectory;
 
-			if (cmd["key-file"] != null)
+			if (args["key-file"] != null)
 			{
-				string[] keys = File.ReadAllLines(cmd["key-file"].Value);
+				string[] keys = File.ReadAllLines(args["key-file"].Value);
 				string keyFilePassword;
 
-				if (cmd["key-password"] != null)
-					keyFilePassword = cmd["key-password"].Value;
+				if (args["key-password"] != null)
+					keyFilePassword = args["key-password"].Value;
 				else
 					keyFilePassword = Environment.GetEnvironmentVariable("FUSION_KEY_PASSWORD");
 
@@ -104,11 +106,11 @@ namespace Fusion
 				cfg.DonationPaymentIdKey = PasswordPrompt.Get("Please enter the payment id encryption key");
 			}
 
-			if (cmd["donation-wallet-file"] != null)
-				donationWalletFile = cmd["donation-wallet-file"].Value;
+			if (args["donation-wallet-file"] != null)
+				donationWalletFile = args["donation-wallet-file"].Value;
 
-			if (cmd["user-wallet-file"] != null)
-				userWalletFile = cmd["user-wallet-file"].Value;
+			if (args["user-wallet-file"] != null)
+				userWalletFile = args["user-wallet-file"].Value;
 
 			string jsonFile = Path.Combine(cfg.DataDir, $"{donationWalletFile}.json");
 			Log.Write($"Loading Wallet JSON: {jsonFile}");

@@ -6,6 +6,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Portable.BouncyCastle" Version="*"/>
+    <PackageReference Include="AngryWasp.Cli" Version="*"/>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../../External/Nerva.Rpc.CSharp/Src/Nerva.Rpc/Nerva.Rpc.csproj" />

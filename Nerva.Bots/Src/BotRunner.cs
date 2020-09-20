@@ -1,18 +1,19 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using AngryWasp.Cli;
+using AngryWasp.Cli.Args;
 using AngryWasp.Helpers;
 using Discord;
 using Discord.WebSocket;
 using Nerva.Bots.Commands;
-using Nerva.Bots.Helpers;
 using Nerva.Bots.Plugin;
 using Log_Severity = AngryWasp.Logger.Log_Severity;
+using Log = Nerva.Bots.Helpers.Log;
 
 namespace Nerva.Bots
 {
@@ -33,28 +34,12 @@ namespace Nerva.Bots
 			}
 		}
 			
-		public async Task MainAsync(string[] args)
+		public async Task MainAsync(string[] rawArgs)
 		{
-            CommandLineParser cmd = CommandLineParser.Parse(args);
+            Arguments args = Arguments.Parse(rawArgs);
             AngryWasp.Logger.Log.CreateInstance(true);
 
-            string token = null;
-            string botAssembly = null;
-			
-			if (cmd["token"] != null)
-			{
-				await Log.Write("Token loaded from command line");
-				token = cmd["token"].Value;
-			}
-
-			if (string.IsNullOrEmpty(token) && cmd["token-file"] != null)
-			{
-				await Log.Write("Token loaded from file");
-				token = File.ReadAllText(cmd["token-file"].Value);
-			}
-
-			if (string.IsNullOrEmpty(token))
-				token = Environment.GetEnvironmentVariable("BOT_TOKEN");
+            string token = args.GetString("token", Environment.GetEnvironmentVariable("BOT_TOKEN"));
 
 			if (string.IsNullOrEmpty(token))
 			{
@@ -64,13 +49,9 @@ namespace Nerva.Bots
 			else
 				await Log.Write($"Loaded token {token}");
 
-			string pw = null;
-			string decryptedToken = null;
+			string pw = args.GetString("password", Environment.GetEnvironmentVariable("BOT_TOKEN_PASSWORD"));
 
-            if (cmd["password"] != null)
-                pw = cmd["password"].Value;
-            else
-				pw = Environment.GetEnvironmentVariable("BOT_TOKEN_PASSWORD");
+			string decryptedToken = null;
 
 			if (string.IsNullOrEmpty(pw))
                 pw = PasswordPrompt.Get("Please enter your token decryption password");
@@ -82,17 +63,12 @@ namespace Nerva.Bots
 				Environment.Exit(0);
 			}
 
-			if (cmd["bot"] == null)
-			{
-				await Log.Write(Log_Severity.Fatal, "Bot plugin not provided!");
-				Environment.Exit(0);
-			}
-			else
-				botAssembly = cmd["bot"].Value;
+			string botAssembly = args.GetString("bot");
 
-			if (!File.Exists(botAssembly))
+			if (String.IsNullOrEmpty(botAssembly) ||
+				!File.Exists(botAssembly))
 			{
-				await Log.Write(Log_Severity.Fatal, "Bot plugin bot found!");
+				await Log.Write(Log_Severity.Fatal, "Could not load bot plugin!");
 				Environment.Exit(0);
 			}
 

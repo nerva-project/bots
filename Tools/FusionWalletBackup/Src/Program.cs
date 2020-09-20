@@ -5,6 +5,7 @@ using AngryWasp.Helpers;
 using Log = AngryWasp.Logger.Log;
 using System.Collections.Generic;
 using System.IO;
+using AngryWasp.Cli.Args;
 
 namespace Tools
 {
@@ -14,7 +15,7 @@ namespace Tools
         [STAThread]
         public static void Main(string[] args)
         {
-            CommandLineParser cmd = CommandLineParser.Parse(args);
+            Arguments cmd = Arguments.Parse(args);
             Log.CreateInstance(true);
 
             if (cmd["backup"] != null && cmd["restore"] != null)

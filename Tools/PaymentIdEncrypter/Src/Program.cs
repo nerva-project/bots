@@ -8,6 +8,8 @@ using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Engines;
 using Log = AngryWasp.Logger.Log;
+using AngryWasp.Cli.Args;
+using AngryWasp.Cli;
 
 namespace Tools
 {
@@ -18,7 +20,7 @@ namespace Tools
         [STAThread]
         public static void Main(string[] args)
         {
-            CommandLineParser cmd = CommandLineParser.Parse(args);
+            Arguments cmd = Arguments.Parse(args);
             Log.CreateInstance(true);
 
             string keyText = null;

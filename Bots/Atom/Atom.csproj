@@ -6,5 +6,6 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="DnsClient" Version="*"/>
+    <PackageReference Include="AngryWasp.Cli" Version="*"/>
   </ItemGroup>
 </Project>

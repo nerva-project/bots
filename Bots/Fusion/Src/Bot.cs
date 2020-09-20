@@ -42,9 +42,9 @@ namespace Fusion
 
 		public string WalletHost { get; } = "127.0.0.1";
 
-        public uint DonationWalletPort { get; set; } = (uint)MathHelper.Random.NextInt(10000, 50000);
+        public uint DonationWalletPort { get; set; }
 
-		public uint UserWalletPort { get; set; } = (uint)MathHelper.Random.NextInt(10000, 50000);
+		public uint UserWalletPort { get; set; }
 
         public AccountJson AccountJson { get; set; } = null;
 
@@ -66,31 +66,30 @@ namespace Fusion
         {
 			AngryWasp.Serializer.Serializer.Initialize();
 
-            if (args["donation-wallet-port"] != null)
-				cfg.DonationWalletPort = uint.Parse(args["donation-wallet-port"].Value);
+			int randomPort = MathHelper.Random.NextInt(10000, 50000);
 
-			if (args["user-wallet-port"] != null)
-				cfg.UserWalletPort = uint.Parse(args["user-wallet-port"].Value);
+			cfg.DonationWalletPort = (uint)args.GetInt("donation-wallet-port", randomPort);
+			cfg.UserWalletPort = (uint)args.GetInt("user-wallet-port", randomPort + 1);
+			cfg.DataDir = args.GetString("data-dir", Environment.CurrentDirectory);
 
-			string donationWalletFile = string.Empty, donationWalletPassword = string.Empty;
-			string userWalletFile = string.Empty, userWalletPassword = string.Empty;
+			string donationWalletFile = args.GetString("donation-wallet-file", null);
+			string userWalletFile = args.GetString("user-wallet-file", null);
 
-			if (args["data-dir"] != null)
-                cfg.DataDir = args["data-dir"].Value;
-            else
-                cfg.DataDir = Environment.CurrentDirectory;
+			if (donationWalletFile == null)
+				Log.Write(AngryWasp.Logger.Log_Severity.Fatal, "--donation-wallet-file not specified");
+
+			if (userWalletFile == null)
+				Log.Write(AngryWasp.Logger.Log_Severity.Fatal, "--user-wallet-file not specified");
+			
+			string donationWalletPassword = string.Empty;
+			string userWalletPassword = string.Empty;
 
 			if (args["key-file"] != null)
 			{
 				string[] keys = File.ReadAllLines(args["key-file"].Value);
-				string keyFilePassword;
+				string keyFilePassword = args.GetString("key-password", Environment.GetEnvironmentVariable("FUSION_KEY_PASSWORD"));
 
-				if (args["key-password"] != null)
-					keyFilePassword = args["key-password"].Value;
-				else
-					keyFilePassword = Environment.GetEnvironmentVariable("FUSION_KEY_PASSWORD");
-
-				if (string.IsNullOrEmpty(keyFilePassword))	
+				if (keyFilePassword == null)	
 					keyFilePassword = PasswordPrompt.Get("Please enter the key file decryption password");
 
 				donationWalletPassword = keys[0].Decrypt(keyFilePassword);
@@ -105,12 +104,6 @@ namespace Fusion
 				userWalletPassword = PasswordPrompt.Get("Please enter the user wallet password");
 				cfg.DonationPaymentIdKey = PasswordPrompt.Get("Please enter the payment id encryption key");
 			}
-
-			if (args["donation-wallet-file"] != null)
-				donationWalletFile = args["donation-wallet-file"].Value;
-
-			if (args["user-wallet-file"] != null)
-				userWalletFile = args["user-wallet-file"].Value;
 
 			string jsonFile = Path.Combine(cfg.DataDir, $"{donationWalletFile}.json");
 			Log.Write($"Loading Wallet JSON: {jsonFile}");

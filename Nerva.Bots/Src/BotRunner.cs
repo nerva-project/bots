@@ -72,17 +72,17 @@ namespace Nerva.Bots
 				Environment.Exit(0);
 			}
 
-			if (cmd["debug"] != null)
+			if (args["debug"] != null)
 				Globals.RpcLogConfig = Nerva.Rpc.Log.Presets.Normal;
 
 			List<int> errorCodes = new List<int>();
 
-			for (int i = 0; i < cmd.Count; i++)
+			for (int i = 0; i < args.Count; i++)
 			{
-				if (cmd[i].Flag == "debug-hide")
+				if (args[i].Flag == "debug-hide")
 				{
 					int j = 0;
-					if (int.TryParse(cmd[i].Value, out j))
+					if (int.TryParse(args[i].Value, out j))
 						errorCodes.Add(-j);
 				}
 			}
@@ -101,7 +101,7 @@ namespace Nerva.Bots
 			botCommands.Add(typeof(Help));
 			botCommands.Add(typeof(Ping));
 
-			Globals.Bot.Init(cmd);
+			Globals.Bot.Init(args);
 
 			var client = new DiscordSocketClient();
 			Globals.Client = client;

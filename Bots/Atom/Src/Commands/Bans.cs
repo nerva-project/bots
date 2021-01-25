@@ -15,7 +15,7 @@ namespace Atom.Commands
         {
             //Use a HashSet here as the adding items is slower, but lookups to check for dups are 
             //orders of magnitude faster.
-            HashSet<string> banList = new HashSet<string>();
+            Dictionary<string, string> banList = new Dictionary<string, string>();
 
             foreach (var s in AtomBotConfig.GetSeedNodes())
             {
@@ -26,8 +26,8 @@ namespace Atom.Commands
                     if (res.Bans != null)
                     {
                         foreach (var b in res.Bans)
-                            if (!banList.Contains(b.Host))
-                                banList.Add(b.Host);
+                            if (!banList.ContainsKey(b.Host))
+                                banList.Add(b.Host, b.Reason);
                     }
                 }
             }
@@ -38,8 +38,8 @@ namespace Atom.Commands
             StringBuilder sb = new StringBuilder();
             if (banList.Count > 0)
             {
-                foreach (string s in banList)
-                    sb.AppendLine(s);
+                foreach (var s in banList)
+                    sb.AppendLine($"{s.Key}: {s.Value}");
             }
             else
                 sb.AppendLine("Nothing here...");

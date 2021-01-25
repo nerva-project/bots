@@ -184,5 +184,8 @@ namespace Atom
         [JsonProperty("seconds")]
         public uint Seconds => 6000;
 
+        [JsonProperty("reason")]
+        public string Reason { get; set; }
+
     }
 }

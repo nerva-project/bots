@@ -197,12 +197,21 @@ namespace Fusion.Commands.Gaming
             }
             else
                 Sender.PublicReply(msg, $"{msg.Author.Mention} I was unable to allocate you any numbers in this draw.");
+        }
 
-            if (unAllocated.Count == 0)
+        public void DrawLottery(SocketUserMessage msg)
+        {
+            int remaining = GetRemainingTickets();
+
+            if (remaining == 0)
             {
                 filled = true;
                 Sender.PublicReply(msg, $"All tickets are sold. Drawing the lottery!");
                 Draw();
+            }
+            else
+            {
+                Sender.PublicReply(msg, $"There's still {remaining} tickets available!");
             }
         }
 
@@ -239,7 +248,6 @@ namespace Fusion.Commands.Gaming
 
                 for (int i = 0; i < winningNumbers.Length; i++)
                 {
-                    //todo: maybe there is a better rng?
                     int x = MathHelper.Random.NextInt(0, allNumbers.Count);
                     winningNumbers[i] = allNumbers[x];
                     allNumbers.RemoveAt(x);

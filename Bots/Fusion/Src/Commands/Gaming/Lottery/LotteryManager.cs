@@ -44,6 +44,8 @@ namespace Fusion.Commands.Gaming
             //todo: post results in fusion channel
             FusionBotConfig cfg = ((FusionBotConfig)Globals.Bot.Config);
 
+            Log.Write("Saving lottery filer");
+
             ulong tsNow = DateTimeHelper.TimestampNow;
             //save the game in case of dispute or a problem paying out
             new ObjectSerializer().Serialize(sender, Path.Combine(cfg.DataDir, $"{tsNow}.xml"));
@@ -60,6 +62,8 @@ namespace Fusion.Commands.Gaming
             {
                 SocketUser winner = Globals.Client.GetUser(n[w]);
                 winnerList += $"{winner.Mention} ";
+
+                Log.Write($"Winner: {winner.Id}");
 
                 RequestError err = AccountHelper.PayUser((double)sender.Parameters.MinorPrize, cfg.BotId, n[w]);
                 if (err != null)
@@ -265,7 +269,7 @@ namespace Fusion.Commands.Gaming
                     break;
                 }
             }
-
+            Log.Write("Processing results");
             LotteryManager.ProcessResults(this);
         }
     }

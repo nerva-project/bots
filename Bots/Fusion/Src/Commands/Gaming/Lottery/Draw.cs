@@ -1,5 +1,7 @@
+using System;
 using System.Threading;
 using Discord.WebSocket;
+using Nerva.Bots.Helpers;
 using Nerva.Bots.Plugin;
 
 namespace Fusion.Commands.Gaming
@@ -18,6 +20,11 @@ namespace Fusion.Commands.Gaming
             try
             {
                 LotteryManager.CurrentGame.DrawLottery(msg);
+            }
+            catch (Exception ex)
+            {
+                Log.Write(ex.Message);
+                Log.WriteNonFatalException(ex);
             }
             finally
             {

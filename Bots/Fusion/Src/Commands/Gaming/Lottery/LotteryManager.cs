@@ -44,7 +44,7 @@ namespace Fusion.Commands.Gaming
             //todo: post results in fusion channel
             FusionBotConfig cfg = ((FusionBotConfig)Globals.Bot.Config);
 
-            Log.Write("Saving lottery filer");
+            Log.Write("Saving lottery file");
 
             ulong tsNow = DateTimeHelper.TimestampNow;
             //save the game in case of dispute or a problem paying out
@@ -53,10 +53,14 @@ namespace Fusion.Commands.Gaming
             var n = sender.Numbers;
             var wn = sender.WinningNumbers;
 
-            Log.Write("Sending DM to each lottery winner");
-
             string winnerList = "Lottery Winners: ";
+            Log.Write("Winning numbers");
+            foreach (var w in wn)
+            {
+                Log.Write(w.ToString() + " " + n[w]);
+            }
 
+            Log.Write("Sending DM to each lottery winner");
             //pay minor prizes
             foreach (var w in wn)
             {

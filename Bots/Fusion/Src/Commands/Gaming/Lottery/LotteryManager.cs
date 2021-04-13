@@ -54,23 +54,7 @@ namespace Fusion.Commands.Gaming
             var wn = sender.WinningNumbers;
 
             string winnerList = "Lottery Winners: ";
-            Log.Write("Winning numbers");
-
-            if (Globals.Client == null)
-                Log.Write("Client is null");
-
-            foreach (var w in wn)
-            {
-                Log.Write(w.ToString() + " " + n[w]);
-                SocketUser winner = Globals.Client.GetUser(n[w]);
-                if (winner == null)
-                {
-                    Log.Write($"User {n[w]} does not exist");
-                }
-            }
-
-            return;
-
+ 
             Log.Write("Sending DM to each lottery winner");
 
             //pay minor prizes
@@ -78,6 +62,7 @@ namespace Fusion.Commands.Gaming
             {
                 SocketUser winner = Globals.Client.GetUser(n[w]);
                 if (winner == null)
+                    continue;
 
                 winnerList += $"{winner.Mention} ";
 

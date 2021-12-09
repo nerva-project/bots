@@ -23,7 +23,7 @@ namespace Atom.Commands
                 .WithAuthor("TradeOgre Details", Globals.Client.CurrentUser.GetAvatarUrl())
                 .WithDescription("The latest pricing from TradeOgre")
                 .WithColor(Color.DarkGreen)
-                .WithThumbnailUrl("https://getnerva.org/content/images/tradeogre-logo.png");
+                .WithThumbnailUrl("https://nerva.one/content/images/tradeogre-logo.png");
 
                 em.AddField("Volume", Math.Round(json.Volume, 5), true);
                 em.AddField("Buy", json.Ask * 100000000.0d, true);

@@ -19,11 +19,11 @@ namespace Atom.Commands
             .WithColor(Color.DarkGrey)
             .WithThumbnailUrl(Globals.Client.CurrentUser.GetAvatarUrl());
 
-            em.AddField("Website", "[getnerva.org](https://getnerva.org/)");
+            em.AddField("Website", "[nerva.one](https://nerva.one/)");
             em.AddField("Twitter", "[@NervaCurrency](https://twitter.com/NervaCurrency)");
             em.AddField("Reddit", "[r/Nerva](https://www.reddit.com/r/Nerva)");
             em.AddField("Source Code", "[BitBucket](https://bitbucket.org/nerva-project)");
-            em.AddField("Block Explorer", "[getnerva.org/explorer](https://getnerva.org/explorer)");
+            em.AddField("Block Explorer", "[explorer.nerva.one](https://explorer.nerva.one)");
             em.AddField("CPU Benchmarks", "[Forkmaps.com](https://forkmaps.com/#/benchmarks)");
             em.AddField("Public Node hosted by Hooftly", "[pubnodes.com](https://www.pubnodes.com/) | [Explorer](https://xnvex.pubnodes.com)");
 

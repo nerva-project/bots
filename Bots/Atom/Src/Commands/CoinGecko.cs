@@ -22,7 +22,7 @@ namespace Atom.Commands
                 .WithAuthor("CoinGecko Details", Globals.Client.CurrentUser.GetAvatarUrl())
                 .WithDescription("The latest scores and rankings from CoinGecko")
                 .WithColor(Color.DarkTeal)
-                .WithThumbnailUrl("https://getnerva.org/content/images/coingecko-logo.png");
+                .WithThumbnailUrl("https://nerva.one/content/images/coingecko-logo.png");
 
                 em.AddField("CoinGecko Rank", json.CoinGeckoRank, true);
                 em.AddField("CoinGecko Score", json.CoinGeckoScore, true);

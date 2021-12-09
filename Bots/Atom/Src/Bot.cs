@@ -54,7 +54,7 @@ namespace Atom
                 seedCache.SeedNodes.Clear();
 
                 var client = new LookupClient();
-                var records = client.Query("seed.getnerva.org", QueryType.TXT).Answers;
+                var records = client.Query("seed.nerva.one", QueryType.TXT).Answers;
 
                 foreach (var r in records)
                     seedCache.SeedNodes.Add(((DnsClient.Protocol.TxtRecord)r).Text.First());

@@ -13,7 +13,7 @@ namespace Atom.Commands
     {
         public void Process(SocketUserMessage msg)
         {
-            Request.Http("https://getnerva.org/getbinaries.php", (rd) =>
+            Request.Http("https://nerva.one/getbinaries.php", (rd) =>
             {
                 if (!rd.IsError)
                 {
@@ -23,7 +23,7 @@ namespace Atom.Commands
                     .WithAuthor("Download Links", Globals.Client.CurrentUser.GetAvatarUrl())
                     .WithDescription($"Current CLI: {json.CliVersion}\nCurrent GUI: {json.GuiVersion}")
                     .WithColor(Color.DarkPurple)
-                    .WithThumbnailUrl("https://getnerva.org/content/images/dropbox-logo.png");
+                    .WithThumbnailUrl("https://nerva.one/content/images/dropbox-logo.png");
 
                     StringBuilder sb = new StringBuilder();
 

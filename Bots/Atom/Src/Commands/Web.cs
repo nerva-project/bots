@@ -22,10 +22,9 @@ namespace Atom.Commands
             em.AddField("Website", "[nerva.one](https://nerva.one/)");
             em.AddField("Twitter", "[@NervaCurrency](https://twitter.com/NervaCurrency)");
             em.AddField("Reddit", "[r/Nerva](https://www.reddit.com/r/Nerva)");
-            em.AddField("Source Code", "[BitBucket](https://bitbucket.org/nerva-project)");
+            em.AddField("Source Code", "[GitHub](https://github.com/nerva-project)");
             em.AddField("Block Explorer", "[explorer.nerva.one](https://explorer.nerva.one)");
             em.AddField("CPU Benchmarks", "[Forkmaps.com](https://forkmaps.com/#/benchmarks)");
-            em.AddField("Public Node hosted by Hooftly", "[pubnodes.com](https://www.pubnodes.com/) | [Explorer](https://xnvex.pubnodes.com)");
 
             DiscordResponse.Reply(msg, embed: em.Build());
         }

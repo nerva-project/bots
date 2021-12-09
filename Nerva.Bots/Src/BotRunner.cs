@@ -19,6 +19,16 @@ namespace Nerva.Bots
 {
     public class BotRunner
     {
+		private string _decryptedToken = null;
+		private DiscordSocketClient _client = new DiscordSocketClient();
+
+		private System.Timers.Timer _keepAliveTimer;
+		private int _reconnectCount = 0;
+		private DateTime _lastReconnectAttempt = DateTime.MinValue;
+
+		private const int _keepAliveInterval = 60000;		// 1 minute
+		
+
         [STAThread]
 		public static void Main(string[] args)
 		{
@@ -51,13 +61,11 @@ namespace Nerva.Bots
 
 			string pw = args.GetString("password", Environment.GetEnvironmentVariable("BOT_TOKEN_PASSWORD"));
 
-			string decryptedToken = null;
-
 			if (string.IsNullOrEmpty(pw))
                 pw = PasswordPrompt.Get("Please enter your token decryption password");
 
 			try {
-				decryptedToken = token.Decrypt(pw);
+				_decryptedToken = token.Decrypt(pw);
 			} catch {
 				await Log.Write(Log_Severity.Fatal, $"Incorrect password: {pw}");
 				Environment.Exit(0);
@@ -103,13 +111,6 @@ namespace Nerva.Bots
 
 			Globals.Bot.Init(args);
 
-			var client = new DiscordSocketClient();
-			Globals.Client = client;
-			client.Log += Log.Write;
-
-			await client.LoginAsync(TokenType.Bot, decryptedToken);
-			await client.StartAsync();
-
 			foreach (Type t in botCommands)
 			{
 				CommandAttribute ca = t.GetCustomAttribute(typeof(CommandAttribute)) as CommandAttribute;
@@ -120,15 +121,93 @@ namespace Nerva.Bots
 				Globals.Commands.Add($"{Globals.Bot.Config.CmdPrefix}{ca.Cmd}", t);
 			}
 
-			client.MessageReceived += MessageReceived;
-			client.Ready += ClientReady;
-			client.Disconnected += (e) =>
-			{
-				Environment.Exit(1);
-				return Task.CompletedTask;
-			};
+			// Timer that will attempt to recover from lost connections
+			_keepAliveTimer = new System.Timers.Timer();
+			_keepAliveTimer.Interval = 2000;		// Set initial interval to 2 sec
+			_keepAliveTimer.Elapsed += (s, e) => KeepAliveProcess();
+			_keepAliveTimer.Start();
 
 			await Task.Delay(-1);
+        }
+
+		private void KeepAliveProcess()
+        {
+            try
+            {
+                if (_keepAliveTimer != null)
+                {					
+                    _keepAliveTimer.Stop();					
+                }
+
+				if(_keepAliveTimer.Interval != _keepAliveInterval)
+				{
+					// Initial call will be 2 sec so reset it to default
+					_keepAliveTimer.Interval = _keepAliveInterval;
+				}
+
+				if(_lastReconnectAttempt != DateTime.MinValue && _lastReconnectAttempt.AddHours(1) < DateTime.Now)
+				{
+					// If last tried to reconnect over an hour ago, reset time/count;
+					_reconnectCount = 0;
+					_lastReconnectAttempt = DateTime.MinValue;
+					Log.Write(Log_Severity.Info, "KeepAlive: Reset reconnect count");
+				}
+
+				if(_client == null || _client.ConnectionState == ConnectionState.Disconnected)
+				{					
+					if(_reconnectCount < 5)
+					{
+						_reconnectCount++;
+						_lastReconnectAttempt = DateTime.Now;
+
+						if(_client == null)
+						{
+							Log.Write(Log_Severity.Info, "KeepAlive: Creating new DiscordSocketClient. Reconnect count: " + _reconnectCount);
+							_client = new DiscordSocketClient();
+						}
+						
+						Log.Write(Log_Severity.Info, "KeepAlive: Trying to connect to Discord. Reconnect count: " + _reconnectCount);
+
+						Globals.Client = _client;
+						_client.Log += Log.Write;
+
+						_client.LoginAsync(TokenType.Bot, _decryptedToken);
+						_client.StartAsync();
+
+						_client.MessageReceived += MessageReceived;
+						_client.Ready += ClientReady;
+						_client.Disconnected += (e) =>
+						{
+							return Task.CompletedTask;
+						};
+
+						Log.Write(Log_Severity.Info, "KeepAlive: Connected to Discord");
+					}
+					else 
+					{
+						// If reconnect attempt fails 5 times, exit
+						Log.Write(Log_Severity.Info, "KeepAlive: Too many reconnect attempts. Quitting...");
+						Environment.Exit(1);
+					}
+				}
+            }
+            catch (Exception ex)
+            {
+				Log.Write(Log_Severity.Warning, "KeepAlive: " + ex.Message + "\r\n" + ex.StackTrace);
+            }
+            finally
+            {
+				// Restart timer
+				if (_keepAliveTimer == null)
+				{
+					Log.Write(Log_Severity.Warning, "KeepAlive: Timer is NULL. Recreating...");
+					_keepAliveTimer = new System.Timers.Timer();
+					_keepAliveTimer.Interval = _keepAliveInterval;
+					_keepAliveTimer.Elapsed += (s, e) => KeepAliveProcess();
+				}
+
+				_keepAliveTimer.Start();
+            }
         }
 
 		private async Task ClientReady()

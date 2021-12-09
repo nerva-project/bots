@@ -16,6 +16,13 @@ namespace Atom
         public List<string> SeedNodes { get; set; } = new List<string>();
     }
 
+    public class ApiNodeCache
+    {
+        public ulong LastUpdate { get; set; } = 0;
+
+        public List<string> ApiNodes { get; set; } = new List<string>();
+    }
+
     public class AtomBotConfig : IBotConfig
     {
         public ulong BotId => 450609948246671360;
@@ -45,6 +52,7 @@ namespace Atom
         public string CmdPrefix => "!";
 
         private static SeedNodeCache seedCache = new SeedNodeCache();
+        private static ApiNodeCache apiCache = new ApiNodeCache();
 
         public static List<string> GetSeedNodes()
         {
@@ -64,6 +72,25 @@ namespace Atom
             
             return seedCache.SeedNodes;
         }
+
+        public static List<string> GetApiNodes()
+        {
+            ulong now = DateTimeHelper.TimestampNow;
+            if (now - apiCache.LastUpdate > 60 * 60 || apiCache.ApiNodes.Count == 0)
+            {
+                apiCache.ApiNodes.Clear();
+
+                var client = new LookupClient();
+                var records = client.Query("api.nerva.one", QueryType.TXT).Answers;
+
+                foreach (var r in records)
+                    apiCache.ApiNodes.Add(((DnsClient.Protocol.TxtRecord)r).Text.First());
+
+                apiCache.LastUpdate = now;
+            }
+            
+            return apiCache.ApiNodes;
+        }
     }
 
     class AtomBot : IBot
@@ -75,6 +102,7 @@ namespace Atom
         public void Init(Arguments args)
         {
             AtomBotConfig.GetSeedNodes();
+            AtomBotConfig.GetApiNodes();
         }
 
         public Task ClientReady()

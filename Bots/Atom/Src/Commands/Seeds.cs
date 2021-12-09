@@ -19,7 +19,7 @@ namespace Atom.Commands
             .WithColor(Color.DarkRed)
             .WithThumbnailUrl(Globals.Client.CurrentUser.GetAvatarUrl());
 
-            Request.ApiAll(AtomBotConfig.GetSeedNodes(), "daemon/get_info", msg.Channel, (rd) =>
+            Request.ApiAll(AtomBotConfig.GetApiNodes(), "daemon/get_info", msg.Channel, (rd) =>
             {
 
                 foreach (var r in rd)

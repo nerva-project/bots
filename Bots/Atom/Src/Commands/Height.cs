@@ -20,7 +20,7 @@ namespace Atom.Commands
             .WithColor(Color.DarkRed)
             .WithThumbnailUrl(Globals.Client.CurrentUser.GetAvatarUrl());
 
-            Request.ApiAll(AtomBotConfig.GetSeedNodes(), "daemon/get_block_count", msg.Channel, (rd) =>
+            Request.ApiAll(AtomBotConfig.GetApiNodes(), "daemon/get_block_count", msg.Channel, (rd) =>
             {
                 foreach (var r in rd)
                 {

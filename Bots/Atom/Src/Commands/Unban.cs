@@ -24,9 +24,9 @@ namespace Atom.Commands
                 bool allFail = true;
                 string ip = m.ToString();
 
-                foreach (var s in AtomBotConfig.GetSeedNodes())
+                foreach (var s in AtomBotConfig.GetApiNodes())
                 {
-                    RequestData rd = Request.Http($"http://{s}/api/daemon/set_bans/?ip={ip}&ban=false&time=0");
+                    RequestData rd = Request.Http($"{s}/daemon/set_bans/?ip={ip}&ban=false&time=0");
                     if (!rd.IsError)
                         allFail = false;
                     else

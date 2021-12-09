@@ -22,7 +22,7 @@ namespace Nerva.Bots.Helpers
         {
             foreach (var apiLink in apiLinks)
             {
-                RequestData rd = Http($"{apiLink}/api/{method}/");
+                RequestData rd = Http($"{apiLink}/{method}/");
 
                 if (!rd.IsError)
                     return rd;
@@ -40,7 +40,7 @@ namespace Nerva.Bots.Helpers
                 if (ret.ContainsKey(apiLink))
                     continue;
 
-                RequestData rd = Http($"http://{apiLink}/api/{method}/");
+                RequestData rd = Http($"{apiLink}/{method}/");
                 ret.Add(apiLink, rd.IsError ? null : rd);
             }
 

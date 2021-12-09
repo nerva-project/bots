@@ -12,7 +12,7 @@ namespace Atom.Commands
     {
         public void Process(SocketUserMessage msg)
         {
-            RequestData rd = Request.ApiAny(AtomBotConfig.GetSeedNodes(), "daemon/get_generated_coins", msg.Channel);
+            RequestData rd = Request.ApiAny(AtomBotConfig.GetApiNodes(), "daemon/get_generated_coins", msg.Channel);
             if (!rd.IsError)
             {
                 ulong coins = JsonConvert.DeserializeObject<JsonResult<GetGeneratedCoins>>(rd.ResultString).Result.Coins;

@@ -17,9 +17,9 @@ namespace Atom.Commands
             //orders of magnitude faster.
             Dictionary<string, string> banList = new Dictionary<string, string>();
 
-            foreach (var s in AtomBotConfig.GetSeedNodes())
+            foreach (var s in AtomBotConfig.GetApiNodes())
             {
-                RequestData rd = Request.Http($"http://{s}/api/daemon/get_bans/");
+                RequestData rd = Request.Http($"{s}/daemon/get_bans/");
                 if (!string.IsNullOrEmpty(rd.ResultString))
                 {
                     var res = JsonConvert.DeserializeObject<JsonResult<BanList>>(rd.ResultString).Result;

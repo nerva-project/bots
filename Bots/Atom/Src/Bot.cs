@@ -81,7 +81,7 @@ namespace Atom
                 apiCache.ApiNodes.Clear();
 
                 var client = new LookupClient();
-                var records = client.Query("api.nerva.one", QueryType.TXT).Answers;
+                var records = client.Query("api_url.nerva.one", QueryType.TXT).Answers;
 
                 foreach (var r in records)
                     apiCache.ApiNodes.Add(((DnsClient.Protocol.TxtRecord)r).Text.First());

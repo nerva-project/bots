@@ -13,7 +13,7 @@ namespace Fusion.Commands.Gaming
             TicketCount = 100,
             TicketCost = 2.0f,
             MinorPrize = 20.0f,
-            JackpotPrize = 40.0f,
+            JackpotPrize = 80.0f,
             WinnerCount = 5
         };
     }

@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+using System;
 using Discord;
 using Discord.WebSocket;
 using Nerva.Bots;
@@ -13,35 +13,41 @@ namespace Atom.Commands
     {
         public void Process(SocketUserMessage msg)
         {
-            var em = new EmbedBuilder()
-            .WithAuthor("Nerva Network Stats", Globals.Client.CurrentUser.GetAvatarUrl())
-            .WithDescription("Seed node status")
-            .WithColor(Color.DarkRed)
-            .WithThumbnailUrl(Globals.Client.CurrentUser.GetAvatarUrl());
-
-            Request.ApiAll(AtomBotConfig.GetApiNodes(), "daemon/get_info", msg.Channel, (rd) =>
+            try
             {
+                var em = new EmbedBuilder()
+                .WithAuthor("Nerva Network Stats", Globals.Client.CurrentUser.GetAvatarUrl())
+                .WithDescription("Seed node status")
+                .WithColor(Color.DarkRed)
+                .WithThumbnailUrl(Globals.Client.CurrentUser.GetAvatarUrl());
 
-                foreach (var r in rd)
+                Request.ApiAll(AtomBotConfig.GetApiNodes(), "daemon/get_info", msg.Channel, (rd) =>
                 {
-                    string result = "No response...";
-
-                    if (r.Value != null)
+                    foreach (var r in rd)
                     {
-                        NodeInfo ni = JsonConvert.DeserializeObject<JsonResult<NodeInfo>>(r.Value.ResultString).Result;
-                        result = 
-                            $"Version: {ni.Version}\n" +
-                            $"Height: {ni.Height}/{ni.TargetHeight}\n" +
-                            $"Connections: {ni.IncomingConnections}/{ni.OutgoingConnections} in/out\n" +
-                            $"Network Hashrate: {((ni.Difficulty / 60.0f) / 1000.0f)} kH/s\n" +
-                            $"Top Block: {ni.TopBlockHash}";
+                        string result = "No response...";
+
+                        if (r.Value != null)
+                        {
+                            NodeInfo ni = JsonConvert.DeserializeObject<JsonResult<NodeInfo>>(r.Value.ResultString).Result;
+                            result = 
+                                $"Version: {ni.Version}\n" +
+                                $"Height: {ni.Height}/{ni.TargetHeight}\n" +
+                                $"Connections: {ni.IncomingConnections}/{ni.OutgoingConnections} in/out\n" +
+                                $"Network Hashrate: {((ni.Difficulty / 60.0f) / 1000.0f)} kH/s\n" +
+                                $"Top Block: {ni.TopBlockHash}";
+                        }
+
+                        em.AddField(r.Key, result);
                     }
 
-                    em.AddField(r.Key, result);
-                }
-
-                DiscordResponse.Reply(msg, embed: em.Build());
-            });
+                    DiscordResponse.Reply(msg, embed: em.Build());
+                });
+            }
+            catch(Exception ex)
+            {
+                Logger.HandleException(ex, "Seeds:Exception:");
+            }
         }
     }
 }

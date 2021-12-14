@@ -1,6 +1,8 @@
+using System;
 using Discord.WebSocket;
 using Nerva.Bots;
 using Nerva.Bots.Plugin;
+using Nerva.Bots.Helpers;
 
 namespace Fusion.Commands.Gaming
 {
@@ -9,7 +11,14 @@ namespace Fusion.Commands.Gaming
     {
         public void Process(SocketUserMessage msg)
         {
-            Sender.PublicReply(msg, LotteryManager.CurrentGame.GetUsersNumbers(msg.Author.Id));
+            try
+            {
+                Sender.PublicReply(msg, LotteryManager.CurrentGame.GetUsersNumbers(msg.Author.Id));
+            }
+            catch(Exception ex)
+            {
+                Logger.HandleException(ex, "MyNumbers:Exception:");
+            }
         }
     }
 }

@@ -1,8 +1,9 @@
-using System.Threading.Tasks;
+using System;
 using Discord.WebSocket;
 using Nerva.Bots;
 using Nerva.Bots.Plugin;
 using Nerva.Rpc.Wallet;
+using Nerva.Bots.Helpers;
 
 #pragma warning disable 4014
 
@@ -13,30 +14,37 @@ namespace Fusion.Commands
     {
         public void Process(SocketUserMessage msg)
         {
-            FusionBotConfig cfg = ((FusionBotConfig)Globals.Bot.Config);
-
-            //can only be run by the server owner
-            if (msg.Author.Id != cfg.ServerOwnerId)
+            try
             {
-                Sender.PublicReply(msg, "This command is not for you!");
-                return;
+                FusionBotConfig cfg = ((FusionBotConfig)Globals.Bot.Config);
+
+                //can only be run by the server owner
+                if (msg.Author.Id != cfg.ServerOwnerId)
+                {
+                    Sender.PublicReply(msg, "This command is not for you!");
+                    return;
+                }
+
+                new RescanBlockchain( (c) =>
+                {
+                    Sender.PrivateReply(msg, "Rescan of donation wallet complete.");
+                }, (e) =>
+                {
+                    Sender.PrivateReply(msg, "Oof. Couldn't rescan donation wallet.");
+                }, cfg.WalletHost, cfg.DonationWalletPort).RunAsync();
+
+                new RescanBlockchain( (c) =>
+                {
+                    Sender.PrivateReply(msg, "Rescan of user wallet complete.");
+                }, (e) =>
+                {
+                    Sender.PrivateReply(msg, "Oof. Couldn't rescan user wallet.");
+                }, cfg.WalletHost, cfg.UserWalletPort).Run();
             }
-
-            new RescanBlockchain( (c) =>
+            catch(Exception ex)
             {
-                Sender.PrivateReply(msg, "Rescan of donation wallet complete.");
-            }, (e) =>
-            {
-                Sender.PrivateReply(msg, "Oof. Couldn't rescan donation wallet.");
-            }, cfg.WalletHost, cfg.DonationWalletPort).RunAsync();
-
-            new RescanBlockchain( (c) =>
-            {
-                Sender.PrivateReply(msg, "Rescan of user wallet complete.");
-            }, (e) =>
-            {
-                Sender.PrivateReply(msg, "Oof. Couldn't rescan user wallet.");
-            }, cfg.WalletHost, cfg.UserWalletPort).Run();
+                Logger.HandleException(ex, "RescanWallet:Exception:");
+            }
         }
     }
 }

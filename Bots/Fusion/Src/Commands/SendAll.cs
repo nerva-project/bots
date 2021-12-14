@@ -1,3 +1,4 @@
+using System;
 using Discord.WebSocket;
 using Nerva.Bots;
 using Nerva.Bots.Helpers;
@@ -12,46 +13,53 @@ namespace Fusion.Commands
     {
         public void Process(SocketUserMessage msg)
         {
-            FusionBotConfig cfg = ((FusionBotConfig)Globals.Bot.Config);
-
-            if (!cfg.UserWalletCache.ContainsKey(msg.Author.Id))
-                AccountHelper.CreateNewAccount(msg);
-            else
+            try
             {
-                string address;
-                if (!AccountHelper.ParseAddressFromMessage(msg, out address))
-                {
-                    Sender.PrivateReply(msg, "Oof. No good. You didn't provide a valid address. :derp:");
-                    return;
-                }
+                FusionBotConfig cfg = ((FusionBotConfig)Globals.Bot.Config);
 
-                uint accountIndex = cfg.UserWalletCache[msg.Author.Id].Item1;
-
-                new SweepAll(new SweepAllRequestData
+                if (!cfg.UserWalletCache.ContainsKey(msg.Author.Id))
+                    AccountHelper.CreateNewAccount(msg);
+                else
                 {
-                    AccountIndex = accountIndex,
-                    Address = address,
-                },
-                (SweepAllResponseData r) =>
-                {
-                    int numTxs = r.TxHashList.Count;
-                    double totalAmount = 0, totalFee = 0;
-                    string txHashList = string.Empty;
-
-                    for (int i = 0; i < numTxs; i++)
+                    string address;
+                    if (!AccountHelper.ParseAddressFromMessage(msg, out address))
                     {
-                        totalAmount += r.AmountList[i].FromAtomicUnits();
-                        totalFee += r.FeeList[i].FromAtomicUnits();
-                        txHashList += $"{r.TxHashList[i]}\r\n";
+                        Sender.PrivateReply(msg, "Oof. No good. You didn't provide a valid address. :derp:");
+                        return;
                     }
 
-                    Sender.PrivateReply(msg, $"{totalAmount} xnv was sent with a fee of {totalFee} xnv in {numTxs} transactions\r\n{txHashList}");
-                },
-                (RequestError e) =>
-                {
-                    Sender.PrivateReply(msg, "Oof. No good. You are going to have to try again later.");
-                },
-                cfg.WalletHost, cfg.UserWalletPort).Run();
+                    uint accountIndex = cfg.UserWalletCache[msg.Author.Id].Item1;
+
+                    new SweepAll(new SweepAllRequestData
+                    {
+                        AccountIndex = accountIndex,
+                        Address = address,
+                    },
+                    (SweepAllResponseData r) =>
+                    {
+                        int numTxs = r.TxHashList.Count;
+                        double totalAmount = 0, totalFee = 0;
+                        string txHashList = string.Empty;
+
+                        for (int i = 0; i < numTxs; i++)
+                        {
+                            totalAmount += r.AmountList[i].FromAtomicUnits();
+                            totalFee += r.FeeList[i].FromAtomicUnits();
+                            txHashList += $"{r.TxHashList[i]}\r\n";
+                        }
+
+                        Sender.PrivateReply(msg, $"{totalAmount} xnv was sent with a fee of {totalFee} xnv in {numTxs} transactions\r\n{txHashList}");
+                    },
+                    (RequestError e) =>
+                    {
+                        Sender.PrivateReply(msg, "Oof. No good. You are going to have to try again later.");
+                    },
+                    cfg.WalletHost, cfg.UserWalletPort).Run();
+                }
+            }
+            catch(Exception ex)
+            {
+                Logger.HandleException(ex, "SendAll:Exception:");
             }
         }
     }

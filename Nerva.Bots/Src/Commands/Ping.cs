@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+using System;
 using Discord.WebSocket;
 using Nerva.Bots.Helpers;
 using Nerva.Bots.Plugin;
@@ -10,7 +10,14 @@ namespace Nerva.Bots.Commands
     {
         public void Process(SocketUserMessage msg)
         {
-            DiscordResponse.Reply(msg, text: "Pong!");
+            try
+            {
+                DiscordResponse.Reply(msg, text: "Pong!");
+            }
+            catch(Exception ex)
+            {
+                Logger.HandleException(ex, "Ping:Exception:");
+            }
         }
     }
 }

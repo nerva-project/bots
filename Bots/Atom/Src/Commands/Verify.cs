@@ -1,8 +1,9 @@
+using System;
 using Discord;
 using Discord.WebSocket;
 using Nerva.Bots;
-using Nerva.Bots.Helpers;
 using Nerva.Bots.Plugin;
+using Nerva.Bots.Helpers;
 
 #pragma warning disable 4014
 
@@ -16,26 +17,37 @@ namespace Atom.Commands
 
         public void Process(SocketUserMessage msg)
         {
-            AtomBotConfig cfg = ((AtomBotConfig)Globals.Bot.Config);
+            try
+            {
+                AtomBotConfig cfg = ((AtomBotConfig)Globals.Bot.Config);
 
-            if (msg.Author.Id == cfg.BotId)
-                return;
-            
-            IGuild guild = Globals.Client.GetGuild(cfg.ServerId);
-            var unverifiedRole = guild.GetRole(UNVERIFIED_USER_ROLE_ID);
-            var verifiedRole = guild.GetRole(VERIFIED_USER_ROLE_ID);
+                if (msg.Author.Id == cfg.BotId)
+                {
+                    return;
+                }
+                
+                IGuild guild = Globals.Client.GetGuild(cfg.ServerId);
+                var unverifiedRole = guild.GetRole(UNVERIFIED_USER_ROLE_ID);
+                var verifiedRole = guild.GetRole(VERIFIED_USER_ROLE_ID);
 
-            var u = guild.GetUserAsync(msg.Author.Id).Result;
+                var u = guild.GetUserAsync(msg.Author.Id).Result;
 
-            SocketGuildUser sgu = u as SocketGuildUser;
+                SocketGuildUser sgu = u as SocketGuildUser;
 
-            if (sgu == null)
-                return;
+                if (sgu == null)
+                {
+                    return;
+                }
 
-            sgu.RemoveRoleAsync(unverifiedRole).Wait();
-            sgu.AddRoleAsync(verifiedRole).Wait();
-            
-            Log.Write($"{sgu.Username} has verified");
+                sgu.RemoveRoleAsync(unverifiedRole).Wait();
+                sgu.AddRoleAsync(verifiedRole).Wait();
+                
+                Logger.WriteDebug($"{sgu.Username} has verified");
+            }
+            catch(Exception ex)
+            {
+                Logger.HandleException(ex, "Verify:Exception:");
+            }
         }
     }
 }

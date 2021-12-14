@@ -12,8 +12,7 @@ using Discord;
 using Discord.WebSocket;
 using Nerva.Bots.Commands;
 using Nerva.Bots.Plugin;
-using Log_Severity = AngryWasp.Logger.Log_Severity;
-using Log = Nerva.Bots.Helpers.Log;
+using Nerva.Bots.Helpers;
 
 namespace Nerva.Bots
 {
@@ -39,7 +38,7 @@ namespace Nerva.Bots
 			}
 			catch (Exception ex)
 			{
-				Log.Write(Log_Severity.Fatal, ex.Message + "\r\n" + ex.StackTrace);
+				Logger.HandleException(ex, "BotRunner:Main1:");
 				Environment.Exit(0);
 			}
 		}
@@ -53,35 +52,42 @@ namespace Nerva.Bots
 
 			if (string.IsNullOrEmpty(token))
 			{
-				await Log.Write(Log_Severity.Fatal, "Bot token not provided!");
+				await Logger.WriteError("Bot token not provided!");
 				Environment.Exit(0);
 			}
 			else
-				await Log.Write($"Loaded token {token}");
+			{
+				await Logger.WriteDebug($"Loaded token {token}");
+			}
 
 			string pw = args.GetString("password", Environment.GetEnvironmentVariable("BOT_TOKEN_PASSWORD"));
-
 			if (string.IsNullOrEmpty(pw))
+			{
                 pw = PasswordPrompt.Get("Please enter your token decryption password");
+			}
 
-			try {
+			try 
+			{
 				_decryptedToken = token.Decrypt(pw);
-			} catch {
-				await Log.Write(Log_Severity.Fatal, $"Incorrect password: {pw}");
+			}
+			catch(Exception ex)
+			{
+				await Logger.HandleException(ex, $"Incorrect password: {pw}");
 				Environment.Exit(0);
 			}
 
 			string botAssembly = args.GetString("bot");
 
-			if (String.IsNullOrEmpty(botAssembly) ||
-				!File.Exists(botAssembly))
+			if (String.IsNullOrEmpty(botAssembly) || !File.Exists(botAssembly))
 			{
-				await Log.Write(Log_Severity.Fatal, "Could not load bot plugin!");
+				await Logger.WriteError("Could not load bot plugin!");
 				Environment.Exit(0);
 			}
 
 			if (args["debug"] != null)
+			{
 				Globals.RpcLogConfig = Nerva.Rpc.Log.Presets.Normal;
+			}
 
 			List<int> errorCodes = new List<int>();
 
@@ -91,12 +97,16 @@ namespace Nerva.Bots
 				{
 					int j = 0;
 					if (int.TryParse(args[i].Value, out j))
+					{
 						errorCodes.Add(-j);
+					}
 				}
 			}
 
 			if (errorCodes.Count > 0)
+			{
 				Globals.RpcLogConfig.SuppressRpcCodes = errorCodes;
+			}
 
             //load plugin
             Globals.BotAssembly = ReflectionHelper.Instance.LoadAssemblyFile(botAssembly);
@@ -115,7 +125,9 @@ namespace Nerva.Bots
 			{
 				CommandAttribute ca = t.GetCustomAttribute(typeof(CommandAttribute)) as CommandAttribute;
 				if (ca == null)
+				{
 					continue;
+				}
 
 				Globals.BotHelp.Add($"{Globals.Bot.Config.CmdPrefix}{ca.Cmd}", ca.Help);
 				Globals.Commands.Add($"{Globals.Bot.Config.CmdPrefix}{ca.Cmd}", t);
@@ -150,7 +162,7 @@ namespace Nerva.Bots
 					// If last tried to reconnect over an hour ago, reset time/count;
 					_reconnectCount = 0;
 					_lastReconnectAttempt = DateTime.MinValue;
-					Log.Write(Log_Severity.Info, "KeepAlive: Reset reconnect count");
+					Logger.WriteDebug("KeepAlive: Reset reconnect count");
 				}
 
 				if(_client == null || _client.ConnectionState == ConnectionState.Disconnected)
@@ -162,14 +174,14 @@ namespace Nerva.Bots
 
 						if(_client == null)
 						{
-							Log.Write(Log_Severity.Info, "KeepAlive: Creating new DiscordSocketClient. Reconnect count: " + _reconnectCount);
+							Logger.WriteDebug("KeepAlive: Creating new DiscordSocketClient. Reconnect count: " + _reconnectCount);
 							_client = new DiscordSocketClient();
 						}
 						
-						Log.Write(Log_Severity.Info, "KeepAlive: Trying to connect to Discord. Reconnect count: " + _reconnectCount);
+						Logger.WriteDebug("KeepAlive: Trying to connect to Discord. Reconnect count: " + _reconnectCount);
 
 						Globals.Client = _client;
-						_client.Log += Log.Write;
+						_client.Log += Logger.Write;
 
 						_client.LoginAsync(TokenType.Bot, _decryptedToken);
 						_client.StartAsync();
@@ -181,26 +193,26 @@ namespace Nerva.Bots
 							return Task.CompletedTask;
 						};
 
-						Log.Write(Log_Severity.Info, "KeepAlive: Connected to Discord");
+						Logger.WriteDebug("KeepAlive: Connected to Discord");
 					}
 					else 
 					{
 						// If reconnect attempt fails 5 times, exit
-						Log.Write(Log_Severity.Info, "KeepAlive: Too many reconnect attempts. Quitting...");
+						Logger.WriteError("KeepAlive: Too many reconnect attempts. Quitting...");
 						Environment.Exit(1);
 					}
 				}
             }
             catch (Exception ex)
             {
-				Log.Write(Log_Severity.Warning, "KeepAlive: " + ex.Message + "\r\n" + ex.StackTrace);
+				Logger.HandleException(ex, "KeepAlive: ");
             }
             finally
             {
 				// Restart timer
 				if (_keepAliveTimer == null)
 				{
-					Log.Write(Log_Severity.Warning, "KeepAlive: Timer is NULL. Recreating...");
+					Logger.WriteWarning("KeepAlive: Timer is NULL. Recreating...");
 					_keepAliveTimer = new System.Timers.Timer();
 					_keepAliveTimer.Interval = _keepAliveInterval;
 					_keepAliveTimer.Elapsed += (s, e) => KeepAliveProcess();
@@ -241,7 +253,7 @@ namespace Nerva.Bots
 			}
 			catch (Exception ex)
 			{
-				await Log.WriteNonFatalException(ex);
+				await Logger.HandleException(ex);
 			}
 		}
     }

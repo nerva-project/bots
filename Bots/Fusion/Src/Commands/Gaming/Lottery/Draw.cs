@@ -13,9 +13,14 @@ namespace Fusion.Commands.Gaming
 
         public void Process(SocketUserMessage msg)
         {
-            try{
+            try
+            {
                 commandLock.WaitAsync();
-            } catch { return; }
+            }
+            catch 
+            {
+                return;
+            }
             
             try
             {
@@ -23,8 +28,7 @@ namespace Fusion.Commands.Gaming
             }
             catch (Exception ex)
             {
-                Log.Write(ex.Message);
-                Log.WriteNonFatalException(ex);
+                Logger.HandleException(ex, "DrawLottery:Exception:");
             }
             finally
             {

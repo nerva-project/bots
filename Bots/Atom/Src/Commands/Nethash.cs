@@ -13,38 +13,49 @@ namespace Atom.Commands
     {
         public void Process(SocketUserMessage msg)
         {
-            var em = new EmbedBuilder()
-            .WithAuthor("Nerva Network Stats", Globals.Client.CurrentUser.GetAvatarUrl())
-            .WithDescription("Network hashrate")
-            .WithColor(Color.DarkRed)
-            .WithThumbnailUrl(Globals.Client.CurrentUser.GetAvatarUrl());
+            try
+            {                
+                var em = new EmbedBuilder()
+                .WithAuthor("Nerva Network Stats", Globals.Client.CurrentUser.GetAvatarUrl())
+                .WithDescription("Network hashrate")
+                .WithColor(Color.DarkRed)
+                .WithThumbnailUrl(Globals.Client.CurrentUser.GetAvatarUrl());
 
-            Request.ApiAll(AtomBotConfig.GetApiNodes(), "daemon/get_info", msg.Channel, (rd) =>
-            {
-                foreach (var r in rd)
+                Request.ApiAll(AtomBotConfig.GetApiNodes(), "daemon/get_info", msg.Channel, (rd) =>
                 {
-                    string result = "No response...";
-
-                    if (r.Value != null)
+                    foreach (var r in rd)
                     {
-                        result = JsonConvert.DeserializeObject<JsonResult<NodeInfo>>(r.Value.ResultString).Result.Difficulty.ToString();
+                        string result = "No response...";
 
-                        float hr = JsonConvert.DeserializeObject<JsonResult<NodeInfo>>(r.Value.ResultString).Result.Difficulty / 60.0f;
-                        result = $"{hr} h/s";
+                        if (r.Value != null)
+                        {
+                            result = JsonConvert.DeserializeObject<JsonResult<NodeInfo>>(r.Value.ResultString).Result.Difficulty.ToString();
 
-                        float kh = (float)Math.Round(hr / 1000.0f, 2);
-                        float mh = (float)Math.Round(hr / 1000000.0f, 2);
-                        if (mh > 1)
-                            result = $"{mh} mh/s";
-                        else
-                            result = $"{kh} kh/s";
+                            float hr = JsonConvert.DeserializeObject<JsonResult<NodeInfo>>(r.Value.ResultString).Result.Difficulty / 60.0f;
+                            result = $"{hr} h/s";
+
+                            float kh = (float)Math.Round(hr / 1000.0f, 2);
+                            float mh = (float)Math.Round(hr / 1000000.0f, 2);
+                            if (mh > 1)
+                            {
+                                result = $"{mh} mh/s";
+                            }
+                            else
+                            {
+                                result = $"{kh} kh/s";
+                            }
+                        }
+
+                        em.AddField(r.Key, result);
                     }
 
-                    em.AddField(r.Key, result);
-                }
-
-                DiscordResponse.Reply(msg, embed: em.Build());
-            });
+                    DiscordResponse.Reply(msg, embed: em.Build());
+                });
+            }
+            catch(Exception ex)
+            {
+                Logger.HandleException(ex, "Nethash:Exception:");
+            }
         }
     }
 }

@@ -6,11 +6,11 @@ using Nerva.Bots.Plugin;
 using Nerva.Rpc;
 using Nerva.Rpc.Wallet;
 using Newtonsoft.Json;
-using Log = Nerva.Bots.Helpers.Log;
 using System.Collections.Generic;
 using Fusion.Commands.Gaming;
 using AngryWasp.Cli;
 using AngryWasp.Cli.Args;
+using Nerva.Bots.Helpers;
 
 namespace Fusion
 {
@@ -76,10 +76,14 @@ namespace Fusion
 			string userWalletFile = args.GetString("user-wallet-file", null);
 
 			if (donationWalletFile == null)
-				Log.Write(AngryWasp.Logger.Log_Severity.Fatal, "--donation-wallet-file not specified");
+			{
+				Logger.WriteError("--donation-wallet-file not specified");
+			}
 
 			if (userWalletFile == null)
-				Log.Write(AngryWasp.Logger.Log_Severity.Fatal, "--user-wallet-file not specified");
+			{
+				Logger.WriteError("--user-wallet-file not specified");
+			}
 			
 			string donationWalletPassword = string.Empty;
 			string userWalletPassword = string.Empty;
@@ -106,7 +110,7 @@ namespace Fusion
 			}
 
 			string jsonFile = Path.Combine(cfg.DataDir, $"{donationWalletFile}.json");
-			Log.Write($"Loading Wallet JSON: {jsonFile}");
+			Logger.WriteDebug($"Loading Wallet JSON: {jsonFile}");
 			cfg.AccountJson = JsonConvert.DeserializeObject<AccountJson>(File.ReadAllText(jsonFile));
 
 			new OpenWallet(new OpenWalletRequestData 
@@ -116,11 +120,11 @@ namespace Fusion
 			},
 			(string result) => 
 			{
-				Log.Write("Wallet loaded");
+				Logger.WriteDebug("Wallet loaded");
 			},
 			(RequestError error) => 
 			{
-				Log.Write("Failed to load donation wallet");
+				Logger.WriteError("Failed to load donation wallet");
 				Environment.Exit(1);
 			}, 
 			cfg.WalletHost, cfg.DonationWalletPort).Run();
@@ -131,7 +135,7 @@ namespace Fusion
 			},
 			(string r1) =>
 			{
-				Log.Write("Wallet loaded");
+				Logger.WriteDebug("Wallet loaded");
 				new GetAccounts(null, (GetAccountsResponseData r2) =>
 				{
 					foreach (var a in r2.Accounts)
@@ -143,10 +147,10 @@ namespace Fusion
 							if (!cfg.UserWalletCache.ContainsKey(uid))
 							{
 								cfg.UserWalletCache.Add(uid, new Tuple<uint, string>(a.Index, a.BaseAddress));
-								Log.Write($"Loaded wallet for user: {a.Label} - {a.BaseAddress}");
+								Logger.WriteDebug($"Loaded wallet for user: {a.Label} - {a.BaseAddress}");
 							}
 							else
-								Log.Write($"Duplicate wallet detected for user with id: {uid}");
+								Logger.WriteDebug($"Duplicate wallet detected for user with id: {uid}");
 						}
 						else
 						{
@@ -154,20 +158,20 @@ namespace Fusion
 							if (a.Index == 0)
 								cfg.UserWalletCache.Add(cfg.BotId, new Tuple<uint, string>(a.Index, a.BaseAddress));
 							else
-								Log.Write($"Account index {a.Index} is not associated with a user");
+								Logger.WriteDebug($"Account index {a.Index} is not associated with a user");
 						}
 					}
 				},
 				(RequestError error) =>
 				{
-					Log.Write("Failed to load user wallet");
+					Logger.WriteError("Failed to load user wallet");
 					Environment.Exit(1);
 				},
 				cfg.WalletHost, cfg.UserWalletPort).Run();
 			},
 			(RequestError error) =>
 			{
-				Log.Write("Failed to load user wallet");
+				Logger.WriteError("Failed to load user wallet");
 				Environment.Exit(1);
 			},
 			cfg.WalletHost, cfg.UserWalletPort).Run();

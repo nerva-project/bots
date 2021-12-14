@@ -1,3 +1,4 @@
+using System;
 using Discord;
 using Discord.WebSocket;
 using Nerva.Bots;
@@ -14,26 +15,35 @@ namespace Atom.Commands
     {
         public void Process(SocketUserMessage msg)
         {
-            var em = new EmbedBuilder()
-            .WithAuthor("Nerva Network Stats", Globals.Client.CurrentUser.GetAvatarUrl())
-            .WithDescription("Network height")
-            .WithColor(Color.DarkRed)
-            .WithThumbnailUrl(Globals.Client.CurrentUser.GetAvatarUrl());
-
-            Request.ApiAll(AtomBotConfig.GetApiNodes(), "daemon/get_block_count", msg.Channel, (rd) =>
+            try
             {
-                foreach (var r in rd)
+                var em = new EmbedBuilder()
+                .WithAuthor("Nerva Network Stats", Globals.Client.CurrentUser.GetAvatarUrl())
+                .WithDescription("Network height")
+                .WithColor(Color.DarkRed)
+                .WithThumbnailUrl(Globals.Client.CurrentUser.GetAvatarUrl());
+
+                Request.ApiAll(AtomBotConfig.GetApiNodes(), "daemon/get_block_count", msg.Channel, (rd) =>
                 {
-                    string result = "No response...";
+                    foreach (var r in rd)
+                    {
+                        string result = "No response...";
 
-                    if (r.Value != null)
-                        result = JsonConvert.DeserializeObject<JsonResult<GetBlockCount>>(r.Value.ResultString).Result.Count.ToString();
+                        if (r.Value != null)
+                        {
+                            result = JsonConvert.DeserializeObject<JsonResult<GetBlockCount>>(r.Value.ResultString).Result.Count.ToString();
+                        }
 
-                    em.AddField(r.Key, result);
-                }
+                        em.AddField(r.Key, result);
+                    }
 
-                DiscordResponse.Reply(msg, embed: em.Build());
-            });
+                    DiscordResponse.Reply(msg, embed: em.Build());
+                });
+            }
+            catch(Exception ex)
+            {
+                Logger.HandleException(ex, "Height:Exception:");
+            }
         }
     }
 }

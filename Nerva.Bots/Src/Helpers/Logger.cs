@@ -6,29 +6,35 @@ using AwLog = AngryWasp.Logger.Log;
 
 namespace Nerva.Bots.Helpers
 {
-    public static class Log
+    public static class Logger
     {
-        public static Task Write(string msg)
+        public static Task WriteDebug(string msg)
 		{
-			AwLog.Instance.Write(msg);
+			AwLog.Instance.Write(Log_Severity.Info, msg);
 			return Task.CompletedTask;
 		}
 
-		public static Task Write(Log_Severity severity, string msg)
+		public static Task WriteWarning(string msg)
 		{
-			AwLog.Instance.Write(severity, msg);
+			AwLog.Instance.Write(Log_Severity.Warning, msg);
 			return Task.CompletedTask;
 		}
 
-		public static Task WriteFatalException(Exception ex)
+		public static Task WriteError(string msg)
 		{
-			AwLog.Instance.WriteFatalException(ex);
+			AwLog.Instance.Write(Log_Severity.Error, msg);
 			return Task.CompletedTask;
 		}
 
-		public static Task WriteNonFatalException(Exception ex)
+		public static Task HandleException(Exception ex)
 		{
 			AwLog.Instance.WriteNonFatalException(ex);
+			return Task.CompletedTask;
+		}
+
+		public static Task HandleException(Exception ex, string message) 
+		{
+			AwLog.Instance.WriteNonFatalException(ex, message);
 			return Task.CompletedTask;
 		}
 
@@ -54,13 +60,21 @@ namespace Nerva.Bots.Helpers
 			}
 
 			if (msg.Exception == null)
+			{
 				AwLog.Instance.Write(msg.ToString());
+			}
 			else
 			{
 				if (ls == Log_Severity.Fatal)
-					AwLog.Instance.WriteFatalException(msg.Exception, msg.Message);
-				else
+				{
+					// It's not loggers job, to kill the application
+					//AwLog.Instance.WriteFatalException(msg.Exception, msg.Message);
 					AwLog.Instance.WriteNonFatalException(msg.Exception, msg.Message);
+				}
+				else
+				{
+					AwLog.Instance.WriteNonFatalException(msg.Exception, msg.Message);
+				}
 			}
 
 			return Task.CompletedTask;

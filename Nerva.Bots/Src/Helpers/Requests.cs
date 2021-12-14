@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using AngryWasp.Helpers;
-using AngryWasp.Logger;
 using Discord;
 using Discord.WebSocket;
 
@@ -20,12 +18,25 @@ namespace Nerva.Bots.Helpers
     {
         public static RequestData ApiAny(List<string> apiLinks, string method, ISocketMessageChannel channel)
         {
-            foreach (var apiLink in apiLinks)
+            try
             {
-                RequestData rd = Http($"{apiLink}/{method}/");
+                foreach (var apiLink in apiLinks)
+                {
+                    RequestData rd = Http($"{apiLink}/{method}/");
 
-                if (!rd.IsError)
-                    return rd;
+                    if (!rd.IsError)
+                    {
+                        return rd;
+                    }
+                    else 
+                    {
+                        Logger.WriteWarning("ApiAny:Error String: " + rd.ErrorString);
+                    }
+                }
+            }
+            catch(Exception ex)
+            {
+                Logger.WriteWarning("ApiAny:Exception:" + ex.Message);
             }
 
             channel.SendMessageAsync("Sorry... All API's are down. The zombie apocalyse is upon us! :scream:");
@@ -34,58 +45,79 @@ namespace Nerva.Bots.Helpers
 
         public static void ApiAll(List<string> apiLinks, string method, ISocketMessageChannel channel, Action<Dictionary<string, RequestData>> action)
         {
-            Dictionary<string, RequestData> ret = new Dictionary<string, RequestData>();
-            foreach (var apiLink in apiLinks)
+            try
             {
-                if (ret.ContainsKey(apiLink))
-                    continue;
-
-                RequestData rd = Http($"{apiLink}/{method}/");
-                ret.Add(apiLink, rd.IsError ? null : rd);
-            }
-
-            bool allNull = true;
-
-            foreach (var r in ret.Values)
-            {
-                if (r != null)
+                Dictionary<string, RequestData> ret = new Dictionary<string, RequestData>();
+                foreach (var apiLink in apiLinks)
                 {
-                    allNull = false;
-                    break;
+                    if (ret.ContainsKey(apiLink))
+                    {
+                        continue;
+                    }
+
+                    RequestData rd = Http($"{apiLink}/{method}/");
+                    ret.Add(apiLink, rd.IsError ? null : rd);
+
+                    Logger.WriteWarning("ApiAll:Error String: " + rd.ErrorString);
+                }
+
+                bool allNull = true;
+
+                foreach (var r in ret.Values)
+                {
+                    if (r != null)
+                    {
+                        allNull = false;
+                        break;
+                    }
+                }
+
+                if (allNull)
+                {
+                    channel.SendMessageAsync("Sorry... All API's are down. The zombie apocalyse is upon us! :scream:");
+                }
+                else
+                {
+                    action(ret);
                 }
             }
-
-            if (allNull)
-                channel.SendMessageAsync("Sorry... All API's are down. The zombie apocalyse is upon us! :scream:");
-            else
-                action(ret);
+            catch(Exception ex)
+            {
+                Logger.WriteWarning("ApiAll:Exception:" + ex.Message);
+            }
         }
 
         public static RequestData Http(string url)
         {
-            string rs = null, e = null;
+            string returnStr = string.Empty;
+            string errorStr = string.Empty;
 
-            if (!NetHelper.HttpRequest(url, out rs, out e))
-                Log.Write(Log_Severity.Error, e);
+            if (!NetHelper.HttpRequest(url, out returnStr, out errorStr))
+            {
+                Logger.WriteError(errorStr);
+            }
 
             return new RequestData
             {
-                ErrorString = e,
-                ResultString = rs
+                ErrorString = errorStr,
+                ResultString = returnStr
             };
         }
 
         public static void Http(string url, Action<RequestData> action)
         {
-            string rs = null, e = null;
+            string returnStr = string.Empty;
+            string errorStr = string.Empty;
 
-            if (!NetHelper.HttpRequest(url, out rs, out e))
-                Log.Write(Log_Severity.Error, e);
+            if (!NetHelper.HttpRequest(url, out returnStr, out errorStr))
+            {
+                Logger.WriteError(errorStr);
+            }
 
             action(new RequestData
             {
-                ErrorString = e,
-                ResultString = rs
+                ErrorString = errorStr,
+                ResultString = returnStr
             });
         }
     }
@@ -97,18 +129,22 @@ namespace Nerva.Bots.Helpers
             try
             {
                 if (text == null)
+                {
                     text = string.Empty;
+                }
 
                 if (msg.Channel.GetType() != typeof(SocketDMChannel))
                 {
                     bool isBotCommander = false;
                     var userRoles = ((SocketGuildUser)msg.Author).Roles;
                     foreach(SocketRole role in userRoles)
+                    {
                         if (Globals.Bot.Config.BotCommanderRoleIds.Contains(role.Id))
                         {
                             isBotCommander = true;
                             break;
                         }
+                    }
                     
                     if (isBotCommander)
                     {
@@ -129,9 +165,9 @@ namespace Nerva.Bots.Helpers
                     Discord.UserExtensions.SendMessageAsync(msg.Author, text, false, embed);
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                Log.Write($"Count not send reply to {msg.Author.Username}");
+                Logger.HandleException(ex, $"Count not send reply to {msg.Author.Username}");
             }
         }
     }

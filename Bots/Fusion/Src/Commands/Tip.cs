@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Discord;
 using Discord.WebSocket;
@@ -14,37 +15,50 @@ namespace Fusion.Commands
     {
         public void Process(SocketUserMessage msg)
         {
-            FusionBotConfig cfg = ((FusionBotConfig)Globals.Bot.Config);
-
-            if (!cfg.UserWalletCache.ContainsKey(msg.Author.Id))
-                AccountHelper.CreateNewAccount(msg);
-            else
+            try
             {
-                double amount;
-                if (!AccountHelper.ParseDoubleFromMessage(msg, out amount))
+                FusionBotConfig cfg = ((FusionBotConfig)Globals.Bot.Config);
+
+                if (!cfg.UserWalletCache.ContainsKey(msg.Author.Id))
                 {
-                    Sender.PrivateReply(msg, "Oof. No good. You didn't say how much you want to tip.");
-                    return;
+                    AccountHelper.CreateNewAccount(msg);
                 }
-
-                uint accountIndex = cfg.UserWalletCache[msg.Author.Id].Item1;
-
-                foreach (var m in msg.MentionedUsers)
+                else
                 {
-                    if (cfg.UserWalletCache.ContainsKey(m.Id))
-                        SendToUser(msg, m, accountIndex, amount.ToAtomicUnits());
-                    else
+                    double amount;
+                    if (!AccountHelper.ParseDoubleFromMessage(msg, out amount))
                     {
-                        string address = AccountHelper.CreateNewAccount(m);
-                        if (string.IsNullOrEmpty(address))
+                        Sender.PrivateReply(msg, "Oof. No good. You didn't say how much you want to tip.");
+                        return;
+                    }
+
+                    uint accountIndex = cfg.UserWalletCache[msg.Author.Id].Item1;
+
+                    foreach (var m in msg.MentionedUsers)
+                    {
+                        if (cfg.UserWalletCache.ContainsKey(m.Id))
                         {
-                            Sender.PrivateReply(msg, $"{m.Mention} does not have a wallet. They cannot take your tip.");
-                            Sender.SendPrivateMessage(Globals.Client.GetUser(m.Id), $"{msg.Author.Mention} tried to send you {amount} xnv, but you don't have a wallet");
+                            SendToUser(msg, m, accountIndex, amount.ToAtomicUnits());
                         }
                         else
-                            SendToUser(msg, m, accountIndex, amount.ToAtomicUnits());
+                        {
+                            string address = AccountHelper.CreateNewAccount(m);
+                            if (string.IsNullOrEmpty(address))
+                            {
+                                Sender.PrivateReply(msg, $"{m.Mention} does not have a wallet. They cannot take your tip.");
+                                Sender.SendPrivateMessage(Globals.Client.GetUser(m.Id), $"{msg.Author.Mention} tried to send you {amount} xnv, but you don't have a wallet");
+                            }
+                            else
+                            {
+                                SendToUser(msg, m, accountIndex, amount.ToAtomicUnits());
+                            }
+                        }
                     }
                 }
+            }
+            catch(Exception ex)
+            {
+                Logger.HandleException(ex, "Tip:Exception:");
             }
         }
 

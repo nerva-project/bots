@@ -1,3 +1,4 @@
+using System;
 using Discord.WebSocket;
 using Nerva.Bots.Helpers;
 using Nerva.Bots.Plugin;
@@ -12,11 +13,18 @@ namespace Atom.Commands
     {
         public void Process(SocketUserMessage msg)
         {
-            RequestData rd = Request.ApiAny(AtomBotConfig.GetApiNodes(), "daemon/get_generated_coins", msg.Channel);
-            if (!rd.IsError)
+            try
             {
-                ulong coins = JsonConvert.DeserializeObject<JsonResult<GetGeneratedCoins>>(rd.ResultString).Result.Coins;
-                DiscordResponse.Reply(msg, text: $"Current Supply: {coins.FromAtomicUnits()}");
+                RequestData rd = Request.ApiAny(AtomBotConfig.GetApiNodes(), "daemon/get_generated_coins", msg.Channel);
+                if (!rd.IsError)
+                {
+                    ulong coins = JsonConvert.DeserializeObject<JsonResult<GetGeneratedCoins>>(rd.ResultString).Result.Coins;
+                    DiscordResponse.Reply(msg, text: $"Current Supply: {coins.FromAtomicUnits()}");
+                }
+            }
+            catch(Exception ex)
+            {
+                Logger.HandleException(ex, "Supply:Exception:");
             }
         }
     }

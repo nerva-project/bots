@@ -72,22 +72,22 @@ namespace Atom
     public class CoinGeckoInfo
     {
         [JsonProperty("market_cap_rank")]
-        public int MarketCapRank { get; set; }
+        public string MarketCapRank { get; set; }
 
         [JsonProperty("coingecko_rank")]
-        public int CoinGeckoRank { get; set; }
+        public string CoinGeckoRank { get; set; }
 
         [JsonProperty("coingecko_score")]
-        public double CoinGeckoScore { get; set; }
+        public string CoinGeckoScore { get; set; }
 
         [JsonProperty("developer_score")]
-        public double DeveloperScore { get; set; }
+        public string DeveloperScore { get; set; }
 
         [JsonProperty("community_score")]
-        public double CommunityScore { get; set; }
+        public string CommunityScore { get; set; }
 
         [JsonProperty("public_interest_score")]
-        public double PublicInterestScore { get; set; }
+        public string PublicInterestScore { get; set; }
 
         [JsonProperty("market_data")]
         public CoinGeckoMarketData MarketData { get; set; }

@@ -1,7 +1,7 @@
 using System;
-using AngryWasp.Logger;
 using Discord;
 using Discord.WebSocket;
+using Nerva.Bots.Helpers;
 
 namespace Nerva.Bots
 {
@@ -21,7 +21,7 @@ namespace Nerva.Bots
             }
             catch (Exception)
             {
-                Helpers.Log.Write(Log_Severity.Warning, $"Sending message to {user.Username} failed");
+                Logger.WriteWarning($"Sending message to {user.Username} failed");
             }
         }
 
@@ -43,7 +43,7 @@ namespace Nerva.Bots
             }
             catch (Exception)
             {
-                Helpers.Log.Write(Log_Severity.Warning, $"Sending message to {userMsg.Author.Username} failed");
+                Logger.WriteWarning($"Sending message to {userMsg.Author.Username} failed");
             }
         }
     }

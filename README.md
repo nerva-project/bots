@@ -2,27 +2,30 @@
 
 #### Install Dotnet
 
+`sudo apt-get install dotnet-sdk-5.0`
+
+If you get error that above dotnet-sdk package cannot be found, you might need to run this:
+ 
+`sudo wget https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb`
+`sudo dpkg -i packages-microsoft-prod.deb`
+
 `sudo add-apt-repository universe`
-
 `sudo apt-get update`
-
-`sudo apt-get install apt-transport-https `
-
+`sudo apt-get install apt-transport-https`
 `sudo apt-get update`
-
-`sudo apt-get install dotnet-sdk-3.1`  
+`sudo apt-get install dotnet-sdk-5.0`  
 
 #### Clone the Repo and build the Bots
 
-`git clone --recursive https://bitbucket.org/nerva-project/bots.git`
+`sudo git clone --recursive https://github.com/nerva-project/bots.git`
 
 `cd bots`
 
-`dotnet restore`
+`sudo dotnet restore`
 
-`dotnet build -c Release`
+`sudo dotnet build -c Release`
 
-`dotnet publish -c Release`
+`sudo dotnet publish -c Release`
 
 Binaries will be found at `~/bots/Bin/Release/publish`
 
@@ -49,6 +52,8 @@ The file should be saved with the binaries in `Bin/Release/publish`
 #### Now Create a directory in the same Binary directory called 'Wallets'
 You need 2 json files here as well as 2 wallets.  user.json and donation.json / user.wallet and donation.wallet
 
+json files actually need to be not in wallets directory but in main Bots directory
+
 #### The json should look like:
 
 ```
@@ -63,18 +68,34 @@ You need 2 json files here as well as 2 wallets.  user.json and donation.json / 
 }
 ```
 
-The address and index should be the Main Address of each corresponding wallet.  If tou want to add different addresses 
-so users can donate for different things add corresponding subaddresses (Accounts).  
+The address and index should be the Main Address of each corresponding wallet.  If you want to add different addresses so users can donate for different things add corresponding subaddresses (Accounts).  
+
+
+You also neeed `keyfile` in the directory with binaries.  It needs to have 3 lines encrypted using StringEncryptor.exe found here:
+https://github.com/nerva-project/tools/tree/master/Src/StringEncrypter
+
+First line is encrypted password for Donate Wallet
+Second line is encrypted password for User Wallet
+Third line is encrypted fusion_pid_key???
+See history of this README file for example what it needs to look like
 
 #### Now you need to start 2 RPC Instances 
 
-`./nerva-wallet-rpc --rpc-bind-port 9995 --password mjks --disable-rpc-login --wallet-dir ~/bots/Bin/Release/publish/Wallets/`
+User Wallet:
+`./nerva-wallet-rpc --rpc-bind-port 9995 --password mjks --disable-rpc-login --wallet-dir ~/bots/Bin/Release/publish/Wallets`
 
-`./nerva-wallet-rpc --rpc-bind-port 9996 --password mjks --disable-rpc-login --wallet-dir ~/bots/Bin/Release/publish/Wallets/`
+Donate Wallet:
+`./nerva-wallet-rpc --rpc-bind-port 9996 --password mjks --disable-rpc-login --wallet-dir ~/bots/Bin/Release/publish/Wallets`
 
 #### Now start the Bot
 
+Fusion Bot:
 `./Nerva.Bots.dll --bot Fusion.dll --token <bot-token> --donation-wallet-file donation --donation-wallet-port 9996 --user-wallet-file user --user-wallet-port 9995 --key-file keyfile`
+`<bot-token>` needs to be encrypted using StringEncryptor.exe
+
+Atom Bot:
+`./Nerva.Bots --bot Atom.dll --token <bot-token> --key-file keyfile`
+`<bot-token>` needs to be encrypted using StringEncryptor.exe
 
 ## The Bots are dependent on the Nerva PHP RPC API
 

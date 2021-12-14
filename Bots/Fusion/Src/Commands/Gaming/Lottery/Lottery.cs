@@ -1,8 +1,9 @@
-using System.Threading.Tasks;
+using System;
 using Discord;
 using Discord.WebSocket;
 using Nerva.Bots;
 using Nerva.Bots.Plugin;
+using Nerva.Bots.Helpers;
 
 namespace Fusion.Commands.Gaming
 {
@@ -11,18 +12,26 @@ namespace Fusion.Commands.Gaming
     {
         public void Process(SocketUserMessage msg)
         {
-            EmbedBuilder eb = new EmbedBuilder()
-            .WithAuthor($"Lottery Stats", Globals.Client.CurrentUser.GetAvatarUrl())
-            .WithDescription("Winners are grinners!")
-            .WithColor(Color.DarkOrange)
-            .WithThumbnailUrl(Globals.Client.CurrentUser.GetAvatarUrl());
+            try
+            {
+                EmbedBuilder eb = new EmbedBuilder()
+                .WithAuthor($"Lottery Stats", Globals.Client.CurrentUser.GetAvatarUrl())
+                .WithDescription("Winners are grinners!")
+                .WithColor(Color.DarkOrange)
+                .WithThumbnailUrl(Globals.Client.CurrentUser.GetAvatarUrl());
 
-            eb.AddField("Cost", $"{LotteryManager.CurrentGame.Parameters.TicketCost.ToString("0.0###")}xnv");
-            eb.AddField("Prize", $"{LotteryManager.CurrentGame.Parameters.WinnerCount}x {LotteryManager.CurrentGame.Parameters.MinorPrize.ToString("0.0###")}xnv");
-            eb.AddField("Jackpot", $"{LotteryManager.CurrentGame.JackpotAmount.ToString("0.0###")}xnv");
-            eb.AddField("Tickets Left", $"{LotteryManager.CurrentGame.GetRemainingTickets()} / {LotteryManager.CurrentGame.Parameters.TicketCount}");
+                eb.AddField("Cost", $"{LotteryManager.CurrentGame.Parameters.TicketCost.ToString("0.0###")}xnv");
+                eb.AddField("Prize", $"{LotteryManager.CurrentGame.Parameters.WinnerCount}x {LotteryManager.CurrentGame.Parameters.MinorPrize.ToString("0.0###")}xnv");
+                eb.AddField("Jackpot", $"{LotteryManager.CurrentGame.JackpotAmount.ToString("0.0###")}xnv");
+                eb.AddField("Tickets Left", $"{LotteryManager.CurrentGame.GetRemainingTickets()} / {LotteryManager.CurrentGame.Parameters.TicketCount}");
 
-            Sender.PublicReply(msg, null, eb.Build());
+                Sender.PublicReply(msg, null, eb.Build());
+
+            }
+            catch(Exception ex)
+            {
+                Logger.HandleException(ex, "LotteryStats:Exception:");
+            }
         }
     }
 }

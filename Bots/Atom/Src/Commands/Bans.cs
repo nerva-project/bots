@@ -1,6 +1,6 @@
+using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Threading.Tasks;
 using Discord.WebSocket;
 using Nerva.Bots.Helpers;
 using Nerva.Bots.Plugin;
@@ -13,38 +13,53 @@ namespace Atom.Commands
     {
         public void Process(SocketUserMessage msg)
         {
-            //Use a HashSet here as the adding items is slower, but lookups to check for dups are 
-            //orders of magnitude faster.
-            Dictionary<string, string> banList = new Dictionary<string, string>();
-
-            foreach (var s in AtomBotConfig.GetApiNodes())
+            try
             {
-                RequestData rd = Request.Http($"{s}/daemon/get_bans/");
-                if (!string.IsNullOrEmpty(rd.ResultString))
+                //Use a HashSet here as the adding items is slower, but lookups to check for dups are 
+                //orders of magnitude faster.
+                Dictionary<string, string> banList = new Dictionary<string, string>();
+
+                foreach (var s in AtomBotConfig.GetApiNodes())
                 {
-                    var res = JsonConvert.DeserializeObject<JsonResult<BanList>>(rd.ResultString).Result;
-                    if (res.Bans != null)
+                    RequestData rd = Request.Http($"{s}/daemon/get_bans/");
+                    if (!string.IsNullOrEmpty(rd.ResultString))
                     {
-                        foreach (var b in res.Bans)
-                            if (!banList.ContainsKey(b.Host))
-                                banList.Add(b.Host, b.Reason);
+                        var res = JsonConvert.DeserializeObject<JsonResult<BanList>>(rd.ResultString).Result;
+                        if (res.Bans != null)
+                        {
+                            foreach (var b in res.Bans)
+                            {
+                                if (!banList.ContainsKey(b.Host))
+                                {
+                                    banList.Add(b.Host, b.Reason);
+                                }
+                            }
+                        }
                     }
                 }
-            }
 
-            //Discord has a 2000 character message limit. It may be possible to exceed this if the ban list is large
-            //So a mod to this code to split the ban list into smaller chunks may be appropriate, however the risk of 
-            //exceeding the character limit is small, making this a job for another day
-            StringBuilder sb = new StringBuilder();
-            if (banList.Count > 0)
+                //Discord has a 2000 character message limit. It may be possible to exceed this if the ban list is large
+                //So a mod to this code to split the ban list into smaller chunks may be appropriate, however the risk of 
+                //exceeding the character limit is small, making this a job for another day
+                StringBuilder sb = new StringBuilder();
+                if (banList.Count > 0)
+                {
+                    foreach (var s in banList)
+                    {
+                        sb.AppendLine($"{s.Key}: {s.Value}");
+                    }
+                }
+                else
+                {
+                    sb.AppendLine("Nothing here...");
+                }
+
+                DiscordResponse.Reply(msg, text: sb.ToString());
+            }
+            catch(Exception ex)
             {
-                foreach (var s in banList)
-                    sb.AppendLine($"{s.Key}: {s.Value}");
+                Logger.HandleException(ex, "Bans:Exception:");
             }
-            else
-                sb.AppendLine("Nothing here...");
-
-            DiscordResponse.Reply(msg, text: sb.ToString());
         }
     }
 }

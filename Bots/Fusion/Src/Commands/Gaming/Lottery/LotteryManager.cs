@@ -7,7 +7,7 @@ using AngryWasp.Serializer;
 using Discord.WebSocket;
 using Nerva.Bots;
 using Nerva.Rpc;
-using Log = Nerva.Bots.Helpers.Log;
+using Nerva.Bots.Helpers;
 
 namespace Fusion.Commands.Gaming
 {
@@ -22,7 +22,7 @@ namespace Fusion.Commands.Gaming
             FusionBotConfig cfg = ((FusionBotConfig)Globals.Bot.Config);
             currentGame = Lottery.New(GameParameters.StandardGame, 0);
             new ObjectSerializer().Serialize(currentGame, Path.Combine(cfg.DataDir, "lottery.xml"));
-            Log.Write($"New lottery game started. Jackpot {currentGame.JackpotAmount}");
+            Logger.WriteDebug($"New lottery game started. Jackpot {currentGame.JackpotAmount}");
         }
 
         public static void Restart(float jackpot)
@@ -30,13 +30,13 @@ namespace Fusion.Commands.Gaming
             FusionBotConfig cfg = ((FusionBotConfig)Globals.Bot.Config);
             currentGame = Lottery.New(GameParameters.StandardGame, jackpot);
             new ObjectSerializer().Serialize(currentGame, Path.Combine(cfg.DataDir, "lottery.xml"));
-            Log.Write($"New lottery game started. Jackpot {currentGame.JackpotAmount}");
+            Logger.WriteDebug($"New lottery game started. Jackpot {currentGame.JackpotAmount}");
         }
 
         public static void Load(string path)
         {
             currentGame = new ObjectSerializer().Deserialize<Lottery>(XDocument.Load(path));
-            Log.Write($"Existing lottery game loaded. Jackpot {currentGame.JackpotAmount}");
+            Logger.WriteDebug($"Existing lottery game loaded. Jackpot {currentGame.JackpotAmount}");
         }
 
         public static void ProcessResults(Lottery sender)
@@ -44,7 +44,7 @@ namespace Fusion.Commands.Gaming
             //todo: post results in fusion channel
             FusionBotConfig cfg = ((FusionBotConfig)Globals.Bot.Config);
 
-            Log.Write("Saving lottery file");
+            Logger.WriteDebug("Saving lottery file");
 
             ulong tsNow = DateTimeHelper.TimestampNow;
             //save the game in case of dispute or a problem paying out
@@ -55,7 +55,7 @@ namespace Fusion.Commands.Gaming
 
             string winnerList = "Lottery Winners: ";
  
-            Log.Write("Sending DM to each lottery winner");
+            Logger.WriteDebug("Sending DM to each lottery winner");
 
             //pay minor prizes
             foreach (var w in wn)
@@ -66,7 +66,7 @@ namespace Fusion.Commands.Gaming
 
                 winnerList += $"{winner.Mention} ";
 
-                Log.Write($"Winner: {winner.Id}");
+                Logger.WriteDebug($"Winner: {winner.Id}");
 
                 RequestError err = AccountHelper.PayUser((double)sender.Parameters.MinorPrize, cfg.BotId, n[w]);
                 if (err != null)
@@ -77,20 +77,20 @@ namespace Fusion.Commands.Gaming
 
             winnerList += ":fireworks:";
 
-            Log.Write("Publishing lottery winners");
+            Logger.WriteDebug("Publishing lottery winners");
 
             foreach (var i in cfg.BotChannelIds)
                 ((ISocketMessageChannel)Globals.Client.GetChannel(i)).SendMessageAsync(winnerList);
 
             float jackpot = sender.JackpotAmount;
 
-            Log.Write("Checking jackpot");
+            Logger.WriteDebug("Checking jackpot");
 
             foreach (var w in wn)
             {
                 if (sender.JackpotNumber == w)
                 {
-                    Log.Write("Jackpot winner");
+                    Logger.WriteDebug("Jackpot winner");
                     RequestError err = AccountHelper.PayUser((double)sender.JackpotAmount, cfg.BotId, n[w]);
                     if (err != null)
                         Sender.SendPrivateMessage(Globals.Client.GetUser(n[w]), $"You just won the lottery jackpot of {sender.JackpotAmount}xnv, but there was a problem with the payout. Please contact an admin and quote number `{tsNow}`");
@@ -101,7 +101,7 @@ namespace Fusion.Commands.Gaming
                 }
             }
             
-            Log.Write("Restarting lottery");
+            Logger.WriteDebug("Restarting lottery");
             Restart(jackpot);
         }
     }
@@ -272,7 +272,7 @@ namespace Fusion.Commands.Gaming
                     break;
                 }
             }
-            Log.Write("Processing results");
+            Logger.WriteDebug("Processing results");
             LotteryManager.ProcessResults(this);
         }
     }

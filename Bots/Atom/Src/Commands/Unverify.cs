@@ -1,8 +1,9 @@
+using System;
 using Discord;
 using Discord.WebSocket;
 using Nerva.Bots;
-using Nerva.Bots.Helpers;
 using Nerva.Bots.Plugin;
+using Nerva.Bots.Helpers;
 using System.Linq;
 
 #pragma warning disable 4014
@@ -17,44 +18,56 @@ namespace Atom.Commands
 
         public void Process(SocketUserMessage msg)
         {
-            AtomBotConfig cfg = ((AtomBotConfig)Globals.Bot.Config);
-
-            //can only be run by the server owner
-            if (msg.Author.Id != cfg.ServerOwnerId)
+            try
             {
-                Sender.PublicReply(msg, "This command is not for you!");
-                return;
-            }
+                AtomBotConfig cfg = ((AtomBotConfig)Globals.Bot.Config);
 
-            IGuild guild = Globals.Client.GetGuild(cfg.ServerId);
-
-            var unverifiedRole = guild.GetRole(UNVERIFIED_USER_ROLE_ID);
-            var users = guild.GetUsersAsync(CacheMode.AllowDownload).Result;
-
-            int count = 0;
-            foreach (var u in users)
-            {
-                SocketGuildUser sgu = (SocketGuildUser)u;
-                var hasVerifiedRole = sgu.Roles.Where(x => x.Id == VERIFIED_USER_ROLE_ID).Count() > 0;
-                var hasUnverifiedRole = sgu.Roles.Where(x => x.Id == UNVERIFIED_USER_ROLE_ID).Count() > 0;
-                if (hasVerifiedRole || hasUnverifiedRole)
-                    continue;
-
-                if (!hasUnverifiedRole)
-                    sgu.AddRoleAsync(unverifiedRole).Wait();
-
-                hasUnverifiedRole = sgu.Roles.Where(x => x.Id == UNVERIFIED_USER_ROLE_ID).Count() > 0;
-
-                if (!hasUnverifiedRole)
+                //can only be run by the server owner
+                if (msg.Author.Id != cfg.ServerOwnerId)
                 {
-                    Log.Write($"Could not make {sgu.Username} unverified.");
-                    continue;
+                    Sender.PublicReply(msg, "This command is not for you!");
+                    return;
                 }
 
-                ++count;
-            }
+                IGuild guild = Globals.Client.GetGuild(cfg.ServerId);
 
-            Log.Write($"Unverified {count} users");
+                var unverifiedRole = guild.GetRole(UNVERIFIED_USER_ROLE_ID);
+                var users = guild.GetUsersAsync(CacheMode.AllowDownload).Result;
+
+                int count = 0;
+                foreach (var u in users)
+                {
+                    SocketGuildUser sgu = (SocketGuildUser)u;
+                    var hasVerifiedRole = sgu.Roles.Where(x => x.Id == VERIFIED_USER_ROLE_ID).Count() > 0;
+                    var hasUnverifiedRole = sgu.Roles.Where(x => x.Id == UNVERIFIED_USER_ROLE_ID).Count() > 0;
+                    if (hasVerifiedRole || hasUnverifiedRole)
+                    {
+                        continue;
+                    }
+
+                    if (!hasUnverifiedRole)
+                    {
+                        sgu.AddRoleAsync(unverifiedRole).Wait();
+                    }
+
+                    hasUnverifiedRole = sgu.Roles.Where(x => x.Id == UNVERIFIED_USER_ROLE_ID).Count() > 0;
+
+                    if (!hasUnverifiedRole)
+                    {
+                        Logger.WriteDebug($"Could not make {sgu.Username} unverified.");
+                        continue;
+                    }
+
+                    ++count;
+                }
+
+                Logger.WriteDebug($"Unverified {count} users");
+
+            }
+            catch(Exception ex)
+            {
+                Logger.HandleException(ex, "Unverify:Exception:");
+            }
         }
     }
 }

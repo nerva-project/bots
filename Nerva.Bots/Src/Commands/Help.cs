@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+using System;
 using Discord;
 using Discord.WebSocket;
 using Nerva.Bots.Helpers;
@@ -11,16 +11,23 @@ namespace Nerva.Bots.Commands
     {
         public void Process(SocketUserMessage msg)
         {
-            var em = new EmbedBuilder()
-            .WithAuthor("Help", Globals.Client.CurrentUser.GetAvatarUrl())
-            .WithDescription("How can I can help you today?")
-            .WithColor(Color.DarkBlue)
-            .WithThumbnailUrl(Globals.Client.CurrentUser.GetAvatarUrl());
+            try
+            {
+                var em = new EmbedBuilder()
+                .WithAuthor("Help", Globals.Client.CurrentUser.GetAvatarUrl())
+                .WithDescription("How can I can help you today?")
+                .WithColor(Color.DarkBlue)
+                .WithThumbnailUrl(Globals.Client.CurrentUser.GetAvatarUrl());
 
-			foreach (var h in Globals.BotHelp)
-				em.AddField(h.Key, h.Value);
+                foreach (var h in Globals.BotHelp)
+                    em.AddField(h.Key, h.Value);
 
-            DiscordResponse.Reply(msg, embed: em.Build());
+                DiscordResponse.Reply(msg, embed: em.Build());
+            }
+            catch(Exception ex)
+            {
+                Logger.HandleException(ex, "Help:Exception:");
+            }
         }
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using Discord;
 using Discord.WebSocket;
 using Nerva.Bots;
@@ -13,20 +14,27 @@ namespace Atom.Commands
     {
         public void Process(SocketUserMessage msg)
         {
-            var em = new EmbedBuilder()
-            .WithAuthor("Web Links", Globals.Client.CurrentUser.GetAvatarUrl())
-            .WithDescription("Need more NERVA information?")
-            .WithColor(Color.DarkGrey)
-            .WithThumbnailUrl(Globals.Client.CurrentUser.GetAvatarUrl());
+            try
+            {
+                var em = new EmbedBuilder()
+                .WithAuthor("Web Links", Globals.Client.CurrentUser.GetAvatarUrl())
+                .WithDescription("Need more NERVA information?")
+                .WithColor(Color.DarkGrey)
+                .WithThumbnailUrl(Globals.Client.CurrentUser.GetAvatarUrl());
 
-            em.AddField("Website", "[nerva.one](https://nerva.one/)");
-            em.AddField("Twitter", "[@NervaCurrency](https://twitter.com/NervaCurrency)");
-            em.AddField("Reddit", "[r/Nerva](https://www.reddit.com/r/Nerva)");
-            em.AddField("Source Code", "[GitHub](https://github.com/nerva-project)");
-            em.AddField("Block Explorer", "[explorer.nerva.one](https://explorer.nerva.one)");
-            em.AddField("CPU Benchmarks", "[Forkmaps.com](https://forkmaps.com/#/benchmarks)");
+                em.AddField("Website", "[nerva.one](https://nerva.one/)");
+                em.AddField("Twitter", "[@NervaCurrency](https://twitter.com/NervaCurrency)");
+                em.AddField("Reddit", "[r/Nerva](https://www.reddit.com/r/Nerva)");
+                em.AddField("Source Code", "[GitHub](https://github.com/nerva-project)");
+                em.AddField("Block Explorer", "[explorer.nerva.one](https://explorer.nerva.one)");
+                em.AddField("CPU Benchmarks", "[Forkmaps.com](https://forkmaps.com/#/benchmarks)");
 
-            DiscordResponse.Reply(msg, embed: em.Build());
+                DiscordResponse.Reply(msg, embed: em.Build());
+            }
+            catch(Exception ex)
+            {
+                Logger.HandleException(ex, "Web:Exception:");
+            }
         }
     }
 }

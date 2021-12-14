@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+using System;
 using Discord;
 using Discord.WebSocket;
 using Nerva.Bots;
@@ -13,25 +13,36 @@ namespace Atom.Commands
     {
         public void Process(SocketUserMessage msg)
         {
-            RequestData rd = Request.Http("https://api.coingecko.com/api/v3/coins/nerva?localization=false");
-            if (!rd.IsError)
+            try
             {
-                var json = JsonConvert.DeserializeObject<CoinGeckoInfo>(rd.ResultString);
+                RequestData rd = Request.Http("https://api.coingecko.com/api/v3/coins/nerva?localization=false");
+                if (!rd.IsError)
+                {
+                    var json = JsonConvert.DeserializeObject<CoinGeckoInfo>(rd.ResultString);
 
-                var em = new EmbedBuilder()
-                .WithAuthor("CoinGecko Details", Globals.Client.CurrentUser.GetAvatarUrl())
-                .WithDescription("The latest scores and rankings from CoinGecko")
-                .WithColor(Color.DarkTeal)
-                .WithThumbnailUrl("https://nerva.one/content/images/coingecko-logo.png");
+                    var em = new EmbedBuilder()
+                    .WithAuthor("CoinGecko Details", Globals.Client.CurrentUser.GetAvatarUrl())
+                    .WithDescription("The latest scores and rankings from CoinGecko")
+                    .WithColor(Color.DarkTeal)
+                    .WithThumbnailUrl("https://nerva.one/content/images/coingecko-logo.png");
 
-                em.AddField("CoinGecko Rank", json.CoinGeckoRank, true);
-                em.AddField("CoinGecko Score", json.CoinGeckoScore, true);
-                em.AddField("Market Cap Rank", json.MarketCapRank, true);
-                em.AddField("Community Score", json.CommunityScore, true);
-                em.AddField("Developer Score", json.DeveloperScore, true);
-                em.AddField("Public Interest Score", json.PublicInterestScore, true);
+                    em.AddField("CoinGecko Rank", json.CoinGeckoRank, true);
+                    em.AddField("CoinGecko Score", json.CoinGeckoScore, true);
+                    em.AddField("Market Cap Rank", json.MarketCapRank, true);
+                    em.AddField("Community Score", json.CommunityScore, true);
+                    em.AddField("Developer Score", json.DeveloperScore, true);
+                    em.AddField("Public Interest Score", json.PublicInterestScore, true);
 
-                DiscordResponse.Reply(msg, embed: em.Build());
+                    DiscordResponse.Reply(msg, embed: em.Build());
+                }
+                else 
+                {
+                    Logger.WriteError("CoinGecko:Error String: " + rd.ErrorString);
+                }
+            }
+            catch(Exception ex)
+            {
+                Logger.HandleException(ex, "CoinGecko:Exception:");
             }
         }
     }

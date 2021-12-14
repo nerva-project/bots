@@ -16,16 +16,23 @@ namespace Fusion.Commands.Gaming
 
         public void Process(SocketUserMessage msg)
         {
-            try{
+            try
+            {
                 commandLock.WaitAsync();
-            } catch { return; }
+            }
+            catch 
+            { 
+                return; 
+            }
             
             try
             {
                 FusionBotConfig cfg = ((FusionBotConfig)Globals.Bot.Config);
 
                 if (!cfg.UserWalletCache.ContainsKey(msg.Author.Id))
+                {
                     AccountHelper.CreateNewAccount(msg);
+                }
                 else
                 {
                     int amount = 0;
@@ -51,6 +58,10 @@ namespace Fusion.Commands.Gaming
 
                     LotteryManager.CurrentGame.AllocateTickets(msg, amount);
                 }
+            }
+            catch(Exception ex)
+            {
+                Logger.HandleException(ex, "BuyTickets:Exception:");
             }
             finally
             {

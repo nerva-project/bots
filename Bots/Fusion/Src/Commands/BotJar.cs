@@ -1,3 +1,4 @@
+using System;
 using Discord;
 using Discord.WebSocket;
 using Nerva.Bots;
@@ -13,31 +14,38 @@ namespace Fusion.Commands
     {
         public void Process(SocketUserMessage msg)
         {
-            FusionBotConfig cfg = ((FusionBotConfig)Globals.Bot.Config);
-
-            new GetBalance(new GetBalanceRequestData
+            try
             {
-                AccountIndex = 0
-            },
-            (GetBalanceResponseData result) =>
-            {
-                EmbedBuilder eb = new EmbedBuilder()
-                .WithAuthor($"Fusion's Tip Jar", Globals.Client.CurrentUser.GetAvatarUrl())
-                .WithDescription("Whale or fail?")
-                .WithColor(Color.DarkTeal)
-                .WithThumbnailUrl(Globals.Client.CurrentUser.GetAvatarUrl());
+                FusionBotConfig cfg = ((FusionBotConfig)Globals.Bot.Config);
 
-                eb.AddField("Address", cfg.UserWalletCache[cfg.BotId].Item2);
-                eb.AddField("Unlocked", $"{result.UnlockedBalance.FromAtomicUnits()} xnv");
-                eb.AddField("Total", $"{result.Balance.FromAtomicUnits()} xnv");
+                new GetBalance(new GetBalanceRequestData
+                {
+                    AccountIndex = 0
+                },
+                (GetBalanceResponseData result) =>
+                {
+                    EmbedBuilder eb = new EmbedBuilder()
+                    .WithAuthor($"Fusion's Tip Jar", Globals.Client.CurrentUser.GetAvatarUrl())
+                    .WithDescription("Whale or fail?")
+                    .WithColor(Color.DarkTeal)
+                    .WithThumbnailUrl(Globals.Client.CurrentUser.GetAvatarUrl());
 
-                Sender.PublicReply(msg, null, eb.Build());
-            },
-            (RequestError e) =>
+                    eb.AddField("Address", cfg.UserWalletCache[cfg.BotId].Item2);
+                    eb.AddField("Unlocked", $"{result.UnlockedBalance.FromAtomicUnits()} xnv");
+                    eb.AddField("Total", $"{result.Balance.FromAtomicUnits()} xnv");
+
+                    Sender.PublicReply(msg, null, eb.Build());
+                },
+                (RequestError e) =>
+                {
+                    Sender.PrivateReply(msg, "Oof. No good. You are going to have to try again later.");
+                },
+                cfg.WalletHost, cfg.UserWalletPort).Run();
+            }
+            catch(Exception ex)
             {
-                Sender.PrivateReply(msg, "Oof. No good. You are going to have to try again later.");
-            },
-            cfg.WalletHost, cfg.UserWalletPort).Run();
+                Logger.HandleException(ex, "BotJar:Exception:");
+            }
         }
     }
 }

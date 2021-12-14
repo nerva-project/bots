@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+using System;
 using Discord;
 using Discord.WebSocket;
 using Nerva.Bots;
@@ -15,26 +15,35 @@ namespace Atom.Commands
     {
         public void Process(SocketUserMessage msg)
         {
-            var em = new EmbedBuilder()
-            .WithAuthor("Nerva Network Stats", Globals.Client.CurrentUser.GetAvatarUrl())
-            .WithDescription("Network difficulty")
-            .WithColor(Color.DarkRed)
-            .WithThumbnailUrl(Globals.Client.CurrentUser.GetAvatarUrl());
-
-            Request.ApiAll(AtomBotConfig.GetApiNodes(), "daemon/get_info", msg.Channel, (rd) =>
+            try
             {
-                foreach (var r in rd)
+                var em = new EmbedBuilder()
+                .WithAuthor("Nerva Network Stats", Globals.Client.CurrentUser.GetAvatarUrl())
+                .WithDescription("Network difficulty")
+                .WithColor(Color.DarkRed)
+                .WithThumbnailUrl(Globals.Client.CurrentUser.GetAvatarUrl());
+
+                Request.ApiAll(AtomBotConfig.GetApiNodes(), "daemon/get_info", msg.Channel, (rd) =>
                 {
-                    string result = "No response...";
+                    foreach (var r in rd)
+                    {
+                        string result = "No response...";
 
-                    if (r.Value != null)
-                        result = JsonConvert.DeserializeObject<JsonResult<NodeInfo>>(r.Value.ResultString).Result.Difficulty.ToString();
+                        if (r.Value != null)
+                        {
+                            result = JsonConvert.DeserializeObject<JsonResult<NodeInfo>>(r.Value.ResultString).Result.Difficulty.ToString();
+                        }
 
-                    em.AddField(r.Key, result);
-                }
+                        em.AddField(r.Key, result);
+                    }
 
-                DiscordResponse.Reply(msg, embed: em.Build());
-            });
+                    DiscordResponse.Reply(msg, embed: em.Build());
+                });
+            }
+            catch(Exception ex)
+            {
+                Logger.HandleException(ex, "Diff:Exception:");
+            }
         }
     }
 }

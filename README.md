@@ -7,12 +7,17 @@
 If you get error that above dotnet-sdk package cannot be found, you might need to run this:
  
 `sudo wget https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb`
+
 `sudo dpkg -i packages-microsoft-prod.deb`
 
 `sudo add-apt-repository universe`
+
 `sudo apt-get update`
+
 `sudo apt-get install apt-transport-https`
+
 `sudo apt-get update`
+
 `sudo apt-get install dotnet-sdk-5.0`  
 
 #### Clone the Repo and build the Bots
@@ -71,30 +76,36 @@ json files actually need to be not in wallets directory but in main Bots directo
 The address and index should be the Main Address of each corresponding wallet.  If you want to add different addresses so users can donate for different things add corresponding subaddresses (Accounts).  
 
 
-You also neeed `keyfile` in the directory with binaries.  It needs to have 3 lines encrypted using StringEncryptor.exe found here:
-https://github.com/nerva-project/tools/tree/master/Src/StringEncrypter
+You also need `keyfile` in the directory with binaries.  It needs to have 3 lines encrypted using StringEncryptor.exe found here: https://github.com/nerva-project/tools/tree/master/Src/StringEncrypter
 
 First line is encrypted password for Donate Wallet
+
 Second line is encrypted password for User Wallet
+
 Third line is encrypted fusion_pid_key???
+
 See history of this README file for example what it needs to look like
 
 #### Now you need to start 2 RPC Instances 
 
 User Wallet:
+
 `./nerva-wallet-rpc --rpc-bind-port 9995 --password mjks --disable-rpc-login --wallet-dir ~/bots/Bin/Release/publish/Wallets`
 
 Donate Wallet:
+
 `./nerva-wallet-rpc --rpc-bind-port 9996 --password mjks --disable-rpc-login --wallet-dir ~/bots/Bin/Release/publish/Wallets`
 
 #### Now start the Bot
 
 Fusion Bot:
 `./Nerva.Bots.dll --bot Fusion.dll --token <bot-token> --donation-wallet-file donation --donation-wallet-port 9996 --user-wallet-file user --user-wallet-port 9995 --key-file keyfile`
+
 `<bot-token>` needs to be encrypted using StringEncryptor.exe
 
 Atom Bot:
 `./Nerva.Bots --bot Atom.dll --token <bot-token> --key-file keyfile`
+
 `<bot-token>` needs to be encrypted using StringEncryptor.exe
 
 ## The Bots are dependent on the Nerva PHP RPC API

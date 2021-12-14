@@ -26,12 +26,12 @@ namespace Atom.Commands
                     .WithColor(Color.DarkTeal)
                     .WithThumbnailUrl("https://nerva.one/content/images/coingecko-logo.png");
 
-                    em.AddField("CoinGecko Rank", json.CoinGeckoRank, true);
-                    em.AddField("CoinGecko Score", json.CoinGeckoScore, true);
-                    em.AddField("Market Cap Rank", json.MarketCapRank, true);
-                    em.AddField("Community Score", json.CommunityScore, true);
-                    em.AddField("Developer Score", json.DeveloperScore, true);
-                    em.AddField("Public Interest Score", json.PublicInterestScore, true);
+                    em.AddField("CoinGecko Rank", string.IsNullOrEmpty(json.CoinGeckoRank) ? "Not Provided" : json.CoinGeckoRank, true);
+                    em.AddField("CoinGecko Score", string.IsNullOrEmpty(json.CoinGeckoScore) ? "Not Provided" : json.CoinGeckoScore, true);
+                    em.AddField("Market Cap Rank", string.IsNullOrEmpty(json.MarketCapRank) ? "Not Provided" : json.MarketCapRank, true);
+                    em.AddField("Community Score", string.IsNullOrEmpty(json.CommunityScore) ? "Not Provided" : json.CommunityScore, true);
+                    em.AddField("Developer Score", string.IsNullOrEmpty(json.DeveloperScore) ? "Not Provided" : json.DeveloperScore, true);
+                    em.AddField("Public Interest Score", string.IsNullOrEmpty(json.PublicInterestScore) ? "Not Provided" : json.PublicInterestScore, true);
 
                     DiscordResponse.Reply(msg, embed: em.Build());
                 }

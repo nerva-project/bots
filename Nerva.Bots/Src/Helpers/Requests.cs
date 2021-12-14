@@ -56,9 +56,12 @@ namespace Nerva.Bots.Helpers
                     }
 
                     RequestData rd = Http($"{apiLink}/{method}/");
-                    ret.Add(apiLink, rd.IsError ? null : rd);
+                    if(rd.IsError)
+                    {
+                        Logger.WriteError("ApiAll:Error String: " + rd.ErrorString);
+                    }
 
-                    Logger.WriteWarning("ApiAll:Error String: " + rd.ErrorString);
+                    ret.Add(apiLink, rd.IsError ? null : rd);                    
                 }
 
                 bool allNull = true;

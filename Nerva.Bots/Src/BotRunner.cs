@@ -31,23 +31,23 @@ namespace Nerva.Bots
         [STAThread]
 		public static void Main(string[] args)
 		{
-			try	
-			{
-				new BotRunner().MainAsync(args).GetAwaiter().GetResult();
-				
-			}
-			catch (Exception ex)
-			{
-				Logger.HandleException(ex, "BotRunner:Main1:");
-				Environment.Exit(0);
-			}
+			new BotRunner().MainAsync(args).GetAwaiter().GetResult();
 		}
 			
 		public async Task MainAsync(string[] rawArgs)
 		{
             Arguments args = Arguments.Parse(rawArgs);
-            AngryWasp.Logger.Log.CreateInstance(true);
+			string logFile = args.GetString("log-file");
 
+			if(string.IsNullOrEmpty(logFile))
+			{
+				AngryWasp.Logger.Log.CreateInstance(true);
+			}
+			else 
+			{
+				AngryWasp.Logger.Log.CreateInstance(true, logFile);
+			}
+            
             string token = args.GetString("token", Environment.GetEnvironmentVariable("BOT_TOKEN"));
 
 			if (string.IsNullOrEmpty(token))

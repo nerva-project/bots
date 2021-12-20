@@ -174,14 +174,14 @@ namespace Nerva.Bots
 						_reconnectCount++;
 						_lastReconnectAttempt = DateTime.Now;
 
-						if(_client == null)
+						if(_client != null)
 						{
-							Logger.WriteDebug("KeepAlive: Creating new DiscordSocketClient. Reconnect count: " + _reconnectCount);
-							_client = new DiscordSocketClient();
+							Logger.WriteDebug("KeepAlive: Disposing of Client...");
+							_client.Dispose();
 						}
-						
-						Logger.WriteDebug("KeepAlive: Trying to connect to Discord. Reconnect count: " + _reconnectCount);
 
+						Logger.WriteDebug("KeepAlive: Creating new Client. Reconnect count: " + _reconnectCount);
+						_client = new DiscordSocketClient();
 						Globals.Client = _client;
 						_client.Log += Logger.Write;
 

@@ -8,33 +8,47 @@ namespace Nerva.Bots.Helpers
 {
     public static class Logger
     {
-        public static Task WriteDebug(string msg)
-		{
-			AwLog.Instance.Write(Log_Severity.Info, msg);
-			return Task.CompletedTask;
-		}
-
-		public static Task WriteWarning(string msg)
-		{
-			AwLog.Instance.Write(Log_Severity.Warning, msg);
-			return Task.CompletedTask;
-		}
-
-		public static Task WriteError(string msg)
-		{
-			AwLog.Instance.Write(Log_Severity.Error, msg);
-			return Task.CompletedTask;
-		}
-
 		public static Task HandleException(Exception ex)
 		{
-			AwLog.Instance.WriteNonFatalException(ex);
+			LogException(ex, string.Empty);
 			return Task.CompletedTask;
 		}
 
 		public static Task HandleException(Exception ex, string message) 
 		{
-			AwLog.Instance.WriteNonFatalException(ex, message);
+			LogException(ex, message);
+			return Task.CompletedTask;
+		}
+
+		public static Task LogException(Exception ex, string message)
+		{
+			if (string.IsNullOrEmpty(message))
+			{
+				AwLog.Instance.Write(Log_Severity.None, "ERROR\t" + DateTime.Now.ToString("u") + "\t Ex Msg: " + ex.Message + "\nTrace: " + ex.StackTrace);
+			}
+			else
+			{
+				AwLog.Instance.Write(Log_Severity.None, "ERROR\t" + DateTime.Now.ToString("u") + "\t " + message + " | Ex Msg: " + ex.Message + "\nTrace: " + ex.StackTrace);
+			}
+
+			return Task.CompletedTask;
+		}
+
+        public static Task WriteDebug(string msg)
+		{
+			AwLog.Instance.Write(Log_Severity.None, "DEBUG\t" + DateTime.Now.ToString("u") + "\t" + msg);
+			return Task.CompletedTask;
+		}
+
+		public static Task WriteWarning(string msg)
+		{
+			AwLog.Instance.Write(Log_Severity.None, "WARN\t" + DateTime.Now.ToString("u") + "\t" + msg);
+			return Task.CompletedTask;
+		}
+
+		public static Task WriteError(string msg)
+		{
+			AwLog.Instance.Write(Log_Severity.None, "ERROR\t" + DateTime.Now.ToString("u") + "\t" + msg);
 			return Task.CompletedTask;
 		}
 

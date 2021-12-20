@@ -36,7 +36,7 @@ namespace Nerva.Bots.Helpers
             }
             catch(Exception ex)
             {
-                Logger.WriteWarning("ApiAny:Exception:" + ex.Message);
+                Logger.HandleException(ex, "ApiAny:Exception:");
             }
 
             channel.SendMessageAsync("Sorry... All API's are down. The zombie apocalyse is upon us! :scream:");
@@ -86,7 +86,7 @@ namespace Nerva.Bots.Helpers
             }
             catch(Exception ex)
             {
-                Logger.WriteWarning("ApiAll:Exception:" + ex.Message);
+                Logger.HandleException(ex, "ApiAll:Exception:");
             }
         }
 

@@ -19,7 +19,7 @@ namespace Nerva.Bots
     public class BotRunner
     {
 		private string _decryptedToken = null;
-		private DiscordSocketClient _client = new DiscordSocketClient();
+		private DiscordSocketClient _client = null;
 
 		private System.Timers.Timer _keepAliveTimer;
 		private int _reconnectCount = 0;

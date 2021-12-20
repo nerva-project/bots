@@ -28,13 +28,12 @@ namespace Atom.Commands
                     ulong coins = JsonConvert.DeserializeObject<JsonResult<GetGeneratedCoins>>(rd.ResultString).Result.Coins;
 
                     var em = new EmbedBuilder()
-                    .WithAuthor("Inflatioin Info", Globals.Client.CurrentUser.GetAvatarUrl())
-                    .WithDescription("NERVA inflation information. Below numbers are estimates")
+                    .WithAuthor("Inflation Info", Globals.Client.CurrentUser.GetAvatarUrl())
+                    .WithDescription("NERVA is already in tail emission which means that each block has 0.3 XNV (+ tx fee) miner reward. Below numbers are estimates")
                     .WithColor(Color.DarkGrey)
                     .WithThumbnailUrl(Globals.Client.CurrentUser.GetAvatarUrl());
 
-                    string inflationInfo = "Current annual inflation is " + ((double)newXnvPerYear / (double)coins).ToString("P3");
-                    em.AddField("NERVA is already in tail emission which means that each block has 0.3 XNV (+ tx fee) miner reward", inflationInfo);
+                    em.AddField("Current annual inflation", ((double)newXnvPerYear / (double)coins.FromAtomicUnits()).ToString("P3"));
 
                     em.AddField("New XNV per day", newXnvPerDay);
                     em.AddField("New XNV per week", newXnvPerWeek);

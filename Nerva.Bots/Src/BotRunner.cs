@@ -42,10 +42,12 @@ namespace Nerva.Bots
 			if(string.IsNullOrEmpty(logFile))
 			{
 				AngryWasp.Logger.Log.CreateInstance(true);
+				await Logger.WriteDebug("Logging without file");
 			}
 			else 
 			{
 				AngryWasp.Logger.Log.CreateInstance(true, logFile);
+				await Logger.WriteDebug("Logging to file: " + logFile);
 			}
             
             string token = args.GetString("token", Environment.GetEnvironmentVariable("BOT_TOKEN"));

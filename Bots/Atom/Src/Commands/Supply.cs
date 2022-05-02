@@ -18,8 +18,8 @@ namespace Atom.Commands
                 RequestData rd = Request.ApiAny(AtomBotConfig.GetApiNodes(), "daemon/get_generated_coins", msg.Channel);
                 if (!rd.IsError)
                 {
-                    ulong coins = JsonConvert.DeserializeObject<JsonResult<GetGeneratedCoins>>(rd.ResultString).Result.Coins;
-                    DiscordResponse.Reply(msg, text: $"Current Supply: {coins.FromAtomicUnits()}");
+                    double coins = Convert.ToDouble(rd.ResultString);
+                    DiscordResponse.Reply(msg, text: $"Current Supply: {coins}");
                 }
             }
             catch(Exception ex)

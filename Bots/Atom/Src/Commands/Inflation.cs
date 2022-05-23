@@ -25,7 +25,7 @@ namespace Atom.Commands
                 RequestData rd = Request.ApiAny(AtomBotConfig.GetApiNodes(), "daemon/get_generated_coins", msg.Channel);
                 if (!rd.IsError)
                 {
-                    ulong coins = JsonConvert.DeserializeObject<JsonResult<GetGeneratedCoins>>(rd.ResultString).Result.Coins;
+                    double coins = Convert.ToDouble(rd.ResultString);
 
                     var em = new EmbedBuilder()
                     .WithAuthor("Inflation Info", Globals.Client.CurrentUser.GetAvatarUrl())
@@ -33,7 +33,7 @@ namespace Atom.Commands
                     .WithColor(Color.DarkGrey)
                     .WithThumbnailUrl(Globals.Client.CurrentUser.GetAvatarUrl());
 
-                    em.AddField("Current annual inflation", ((double)newXnvPerYear / (double)coins.FromAtomicUnits()).ToString("P3"));
+                    em.AddField("Current annual inflation", ((double)newXnvPerYear / coins).ToString("P3"));
 
                     em.AddField("New XNV per day", newXnvPerDay);
                     em.AddField("New XNV per week", newXnvPerWeek);

@@ -10,7 +10,7 @@
 
   <ItemGroup>
       <Reference Include="AngryWasp.Cli.dll">
-          <HintPath>..\..\Dlls\AngryWasp.Cli.dll</HintPath>
+          <HintPath>../../Dlls/AngryWasp.Cli.dll</HintPath>
       </Reference>
   </ItemGroup>
 </Project>

@@ -28,7 +28,7 @@
         <HintPath>..\Dlls\AngryWasp.Cli.dll</HintPath>
     </Reference>
     <Reference Include="AngryWasp.Serializer.dll">
-        <HintPath>..\Dlls\AngryWasp.Serializer.dll</HintPath>
+        <HintPath>../Dlls/AngryWasp.Serializer.dll</HintPath>
     </Reference>
 </ItemGroup>
 </Project>

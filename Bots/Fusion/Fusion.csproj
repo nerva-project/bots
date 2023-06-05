@@ -6,7 +6,12 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Portable.BouncyCastle" Version="*"/>
-    <PackageReference Include="AngryWasp.Cli" Version="*"/>
     <PackageReference Include="Nerva.Rpc.CSharp" Version="*"/>
+  </ItemGroup>
+
+    <ItemGroup>
+      <Reference Include="AngryWasp.Cli.dll">
+          <HintPath>..\..\Dlls\AngryWasp.Cli.dll</HintPath>
+      </Reference>
   </ItemGroup>
 </Project>

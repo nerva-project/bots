@@ -20,8 +20,15 @@
   <ItemGroup>
     <PackageReference Include="Discord.Net" Version="*"/>
     <PackageReference Include="Newtonsoft.Json" Version="*"/>
-    <PackageReference Include="AngryWasp.Serializer" Version="*"/>
-    <PackageReference Include="AngryWasp.Cli" Version="*"/>
     <PackageReference Include="Nerva.Rpc.CSharp" Version="*"/>
   </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="AngryWasp.Cli.dll">
+        <HintPath>..\Dlls\AngryWasp.Cli.dll</HintPath>
+    </Reference>
+    <Reference Include="AngryWasp.Serializer.dll">
+        <HintPath>..\Dlls\AngryWasp.Serializer.dll</HintPath>
+    </Reference>
+</ItemGroup>
 </Project>

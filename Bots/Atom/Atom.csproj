@@ -6,6 +6,11 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="DnsClient" Version="*"/>
-    <PackageReference Include="AngryWasp.Cli" Version="*"/>
+  </ItemGroup>
+
+  <ItemGroup>
+      <Reference Include="AngryWasp.Cli.dll">
+          <HintPath>..\..\Dlls\AngryWasp.Cli.dll</HintPath>
+      </Reference>
   </ItemGroup>
 </Project>

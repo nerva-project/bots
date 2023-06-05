@@ -15,7 +15,7 @@ namespace Atom.Commands
         {
             try
             {
-                RequestData rd = Request.Http("https://tradeogre.com/api/v1/ticker/btc-xnv");
+                RequestData rd = Request.Http("https://tradeogre.com/api/v1/ticker/xnv-btc");
                 if (!rd.IsError)
                 {
                     var json = JsonConvert.DeserializeObject<MarketInfo>(rd.ResultString);
@@ -26,9 +26,10 @@ namespace Atom.Commands
                     .WithColor(Color.DarkGreen)
                     .WithThumbnailUrl("https://nerva.one/content/images/tradeogre-logo.png");
 
+                    em.AddField("Last Price", Math.Round(json.Price * 100000000.0d, 0) + " sat", true);                    
+                    em.AddField("Bid", Math.Round(json.Bid * 100000000.0d, 0) + " sat", true);
+                    em.AddField("Ask", Math.Round(json.Ask * 100000000.0d, 0) + " sat", true);
                     em.AddField("Volume", Math.Round(json.Volume, 5) + " BTC", true);
-                    em.AddField("Buy", Math.Round(json.Ask * 100000000.0d, 0) + " sat", true);
-                    em.AddField("Sell", Math.Round(json.Bid * 100000000.0d, 0) + " sat", true);
                     em.AddField("High", Math.Round(json.High * 100000000.0d, 0) + " sat", true);
                     em.AddField("Low", Math.Round(json.Low * 100000000.0d, 0) + " sat", true);
 

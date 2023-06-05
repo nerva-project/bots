@@ -52,6 +52,9 @@ namespace Atom
     [JsonObject]
     public class MarketInfo
     {
+        [JsonProperty("price")]
+        public double Price { get; set; }
+        
         [JsonProperty("bid")]
         public double Bid { get; set; }
 

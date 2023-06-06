@@ -17,13 +17,16 @@
     <Optimize>true</Optimize>
     <OutputPath>../../Bin/$(Configuration)</OutputPath>
   </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="Nerva.Rpc.CSharp" Version="*"/>
-  </ItemGroup>
 
   <ItemGroup>
     <Reference Include="AngryWasp.Cli.dll">
         <HintPath>../../Dlls/AngryWasp.Cli.dll</HintPath>
+    </Reference>
+    <Reference Include="Nerva.Rpc.dll">
+        <HintPath>../../Dlls/Nerva.Rpc.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json.dll">
+        <HintPath>../../Dlls/Newtonsoft.Json.dll</HintPath>
     </Reference>
   </ItemGroup>
 </Project>

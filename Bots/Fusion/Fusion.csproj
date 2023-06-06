@@ -6,15 +6,20 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Portable.BouncyCastle" Version="*"/>
-    <PackageReference Include="Nerva.Rpc.CSharp" Version="*"/>
   </ItemGroup>
 
-    <ItemGroup>
-      <Reference Include="AngryWasp.Cli.dll">
-          <HintPath>../../Dlls/AngryWasp.Cli.dll</HintPath>
-      </Reference>
-      <Reference Include="AngryWasp.Serializer.dll">
-          <HintPath>../../Dlls/AngryWasp.Serializer.dll</HintPath>
-      </Reference>
+  <ItemGroup>
+    <Reference Include="AngryWasp.Cli.dll">
+        <HintPath>../../Dlls/AngryWasp.Cli.dll</HintPath>
+    </Reference>
+    <Reference Include="AngryWasp.Serializer.dll">
+        <HintPath>../../Dlls/AngryWasp.Serializer.dll</HintPath>
+    </Reference>
+    <Reference Include="Nerva.Rpc.dll">
+        <HintPath>../../Dlls/Nerva.Rpc.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json.dll">
+        <HintPath>../../Dlls/Newtonsoft.Json.dll</HintPath>
+    </Reference>
   </ItemGroup>
 </Project>

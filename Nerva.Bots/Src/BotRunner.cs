@@ -180,8 +180,13 @@ namespace Nerva.Bots
 							_client.Dispose();
 						}
 
+						var config = new DiscordSocketConfig()
+						{
+							GatewayIntents = GatewayIntents.MessageContent
+						};
+
 						Logger.WriteDebug("KeepAlive: Creating new Client. Reconnect count: " + _reconnectCount);
-						_client = new DiscordSocketClient();
+						_client = new DiscordSocketClient(config);
 						Globals.Client = _client;
 						_client.Log += Logger.Write;
 

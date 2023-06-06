@@ -25,6 +25,12 @@
     <Reference Include="AngryWasp.Cli.dll">
         <HintPath>../../Dlls/AngryWasp.Cli.dll</HintPath>
     </Reference>
+      <Reference Include="AngryWasp.Helpers.dll">
+        <HintPath>../../Dlls/AngryWasp.Helpers.dll</HintPath>
+    </Reference>
+    <Reference Include="AngryWasp.Logger.dll">
+        <HintPath>../../Dlls/AngryWasp.Logger.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>

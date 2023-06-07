@@ -8,6 +8,8 @@ namespace Nerva.Bots.Plugin
         ulong BotId { get; }
 
         ulong ServerOwnerId { get; }
+        
+        ulong ServerId { get; }
 
         List<ulong> ServerAdminRoleIds { get; }
 

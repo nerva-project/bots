@@ -18,6 +18,8 @@ namespace Fusion
     {
 		public ulong BotId => 914358923316850728;
 
+		public ulong ServerId => 439649936414474256;
+
 		public ulong ServerOwnerId => 385624888918016012;
 
         public List<ulong> BotChannelIds => new List<ulong>

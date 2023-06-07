@@ -13,6 +13,8 @@ using Discord.WebSocket;
 using Nerva.Bots.Commands;
 using Nerva.Bots.Plugin;
 using Nerva.Bots.Helpers;
+using Nerva.Bots.Classes;
+using System.Timers;
 
 namespace Nerva.Bots
 {
@@ -21,9 +23,13 @@ namespace Nerva.Bots
 		private string _decryptedToken = null;
 		private DiscordSocketClient _client = null;
 
-		private System.Timers.Timer _keepAliveTimer;
+		private Timer _keepAliveTimer;
 		private int _reconnectCount = 0;
 		private DateTime _lastReconnectAttempt = DateTime.MinValue;
+
+		private IList<DiscordUser> _discordUsers = new List<DiscordUser>();
+		private string _discordUserFile = Path.Combine(Environment.CurrentDirectory, "DiscordUsers.json");
+		private DateTime _lastUserCheckTime = DateTime.MinValue;
 
 		private const int _keepAliveInterval = 60000;		// 1 minute
         [STAThread]
@@ -207,6 +213,13 @@ namespace Nerva.Bots
 						Environment.Exit(1);
 					}
 				}
+
+				if(_lastUserCheckTime.AddHours(4) < DateTime.Now)
+				{
+					// This will initially run when bot starts and every 4 hours after that
+					_lastUserCheckTime = DateTime.Now;
+					UserActivityCheckProcess();
+				}
             }
             catch (Exception ex)
             {
@@ -259,6 +272,50 @@ namespace Nerva.Bots
 			catch (Exception ex)
 			{
 				await Logger.HandleException(ex);
+			}
+		}
+
+		private void UserActivityCheckProcess()
+		{
+			try
+			{
+				Logger.WriteDebug("Running UserActivityCheckProcess. Guild Id: " + Globals.Bot.Config.ServerId + " | Discord User file: " + _discordUserFile);
+							
+				// Read json from file
+				//string json = JsonSerializer.Serialize(discordUsers);
+				//File.WriteAllText(discordUserFile, json);
+
+				// Save json to file
+				//json = File.ReadAllText(discordUserFile);
+				//FileStream stream = File.OpenRead(discordUserFile);
+				//discordUsers = JsonSerializer.Deserialize<List<DiscordUser>>(json);
+
+				
+				IGuild guild = Globals.Client.GetGuild(Globals.Bot.Config.ServerId);
+				var users = guild.GetUsersAsync(CacheMode.AllowDownload).Result;
+
+				Logger.WriteDebug("Users found: " + users.Count);
+				foreach (var user in users)
+				{
+					SocketGuildUser socketUser = (SocketGuildUser)user;
+					Logger.WriteDebug("User Name: " + socketUser.Username + " | Nickname: " + socketUser.Nickname + " | Display Name: " + socketUser.DisplayName + " | Discriminator: " + socketUser.Discriminator + " | Joined: " + socketUser.JoinedAt.ToString() + " | IsBot: " + socketUser.IsBot + " | Roles: " + socketUser.Roles.ToString());
+				}
+
+				// TODO: Load Discord users from storage to object in memory		
+
+				// TODO: If initial run, get users from Discord, save them and crawl to get last activity for each user. Update last activity for each user in memory and save to storage
+
+				// TODO: Kick users that did not verify within 3 days (They only have Unverified User Role and joined over 3 days ago)
+
+				// TODO: Warn users who did not post in a year. Update warned date in memory and storage
+
+				// TODO: If warned date was more than 2 days ago and they have still not spoken, kick user and reset some date (so we do not attempt the kick them again?)
+
+				Logger.WriteDebug("Finished running UserActivityCheckProcess.");
+			}
+			catch (Exception ex)
+			{
+				Logger.HandleException(ex, "Exception in UserActivityCheckProcess!");
 			}
 		}
     }

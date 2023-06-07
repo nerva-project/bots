@@ -15,7 +15,7 @@ namespace Nerva.Bots.Commands
             {
                 var em = new EmbedBuilder()
                 .WithAuthor("Help", Globals.Client.CurrentUser.GetAvatarUrl())
-                .WithDescription("How can I can help you today?")
+                .WithDescription("How can I help you today?")
                 .WithColor(Color.DarkBlue)
                 .WithThumbnailUrl(Globals.Client.CurrentUser.GetAvatarUrl());
 

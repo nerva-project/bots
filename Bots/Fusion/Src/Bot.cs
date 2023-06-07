@@ -16,26 +16,25 @@ namespace Fusion
 {
     public class FusionBotConfig : IBotConfig
     {
-		public ulong BotId => 466512207396732939;
+		public ulong BotId => 914358923316850728;
 
-		public ulong ServerOwnerId => 407511685134549003;
+		public ulong ServerOwnerId => 385624888918016012;
 
         public List<ulong> BotChannelIds => new List<ulong>
 		{
-			466873635638870016, //Fusion
-			504717279573835832, //AM-XNV
-			509444814404714501, //AM-Bots
+			450660331405049876, // Atom
+            466873635638870016, // Fusion
+			687440519059472414  // Mee6
 		};
 
 		public List<ulong> ServerAdminRoleIds => new List<ulong>
 		{
-			715494617767739475, //NV-HelloAdmin
+			439651263479545857 	// Admin
 		};
 
 		public List<ulong> BotCommanderRoleIds => new List<ulong>
 		{
-			595498219987927050, //NV-BotCommander
-            595495919097741322, //AM-BotCommander
+			550591115129257985 // Enforcer
 		};
 
         public string CmdPrefix => "$";

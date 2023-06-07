@@ -26,8 +26,6 @@ namespace Nerva.Bots
 		private DateTime _lastReconnectAttempt = DateTime.MinValue;
 
 		private const int _keepAliveInterval = 60000;		// 1 minute
-		
-
         [STAThread]
 		public static void Main(string[] args)
 		{
@@ -182,7 +180,7 @@ namespace Nerva.Bots
 
 						var config = new DiscordSocketConfig()
 						{
-							GatewayIntents = GatewayIntents.MessageContent
+							GatewayIntents = GatewayIntents.All
 						};
 
 						Logger.WriteDebug("KeepAlive: Creating new Client. Reconnect count: " + _reconnectCount);

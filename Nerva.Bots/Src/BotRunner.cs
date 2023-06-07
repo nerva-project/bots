@@ -323,15 +323,15 @@ namespace Nerva.Bots
 								_discordUsers.Add(socketUser.Id, discordUser);
 							}
 						}
-
-						Logger.WriteDebug("Users loaded from Discord. Count: " + _discordUsers.Count);
-
+					
 						//Logger.WriteDebug("User Name: " + socketUser.Username + " | Discriminator: " + socketUser.Discriminator + " | Id: " + socketUser.Id + " | Joined: " + socketUser.JoinedAt.ToString() + " | IsBot: " + socketUser.IsBot + " | Roles: " + stringRoles);
 						
 						// socketUser.Id = Unique User ID of user
 						// socketUser.Username = UserName
 						// socketUser.Discriminator = 4 digit number after #
 					}
+
+					Logger.WriteDebug("Users loaded from Discord. Count: " + _discordUsers.Count);
 
 					// Initial user pull from Disord so get last activity for each user
 					if(_discordUsers.Count > 0)
@@ -363,15 +363,27 @@ namespace Nerva.Bots
 				var channels = socketGuild.TextChannels;
 
 				await Logger.WriteDebug("Text channel count: " + channels.Count);
-				foreach(var channel in channels)
+				foreach(SocketTextChannel channel in channels)
 				{
 					await Logger.WriteDebug("Channel Id: " + channel.Id + " | Name: " + channel.Name);
-					var messages = channel.GetMessagesAsync(5).Flatten();
 
-					await foreach(var message in messages)
+					if(channel.Category.Name.ToLower().Equals("stats") || channel.Category.Name.ToLower().Equals("archived"))
 					{
-						await Logger.WriteDebug("Message Id: " + message.Id + " | Author Id: " + message.Author.Id + " | Author UserName: " + message.Author.Username);
+						// Skip Stats and Archived channels
 					}
+					else 
+					{
+						var messages = channel.GetMessagesAsync(5).Flatten();
+
+						await foreach(var message in messages)
+						{
+							await Logger.WriteDebug("Message Id: " + message.Id + " | Author Id: " + message.Author.Id + " | Author UserName: " + message.Author.Username);
+						}
+					}
+
+
+					// Don't go too fast getting messages from channels
+					await Task.Delay(1000);
 				}
 
 				// Save users to file

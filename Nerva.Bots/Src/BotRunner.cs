@@ -359,6 +359,8 @@ namespace Nerva.Bots
 		{
 			try
 			{
+				await Logger.WriteDebug("Started running UpdateUserActivity");
+
 				var socketGuild = Globals.Client.GetGuild(Globals.Bot.Config.ServerId);
 				var channels = socketGuild.TextChannels;
 
@@ -367,7 +369,7 @@ namespace Nerva.Bots
 				{
 					await Logger.WriteDebug("Channel Id: " + channel.Id + " | Name: " + channel.Name);
 
-					if(channel.Category.Name.ToLower().Equals("stats") || channel.Category.Name.ToLower().Equals("archived"))
+					if(channel.Category != null && (channel.Category.Name.ToLower().Equals("stats") || channel.Category.Name.ToLower().Equals("archived")))
 					{
 						// Skip Stats and Archived channels
 					}
@@ -377,7 +379,15 @@ namespace Nerva.Bots
 
 						await foreach(var message in messages)
 						{
-							await Logger.WriteDebug("Message Id: " + message.Id + " | Author Id: " + message.Author.Id + " | Author UserName: " + message.Author.Username);
+							//await Logger.WriteDebug("Message Id: " + message.Id + " | Author Id: " + message.Author.Id + " | Author UserName: " + message.Author.Username);
+							if(_discordUsers.ContainsKey(message.Author.Id))
+							{
+								if(message.CreatedAt.DateTime > _discordUsers[message.Author.Id].LastPostDate)
+								{
+									await Logger.WriteDebug("Updating Last Post Date for User Id: " + message.Author.Id + " | UserName: " + message.Author.Username + " | Posted: " + message.CreatedAt.DateTime.ToShortDateString());
+									_discordUsers[message.Author.Id].LastPostDate = message.CreatedAt.DateTime;
+								}
+							}
 						}
 					}
 
@@ -392,6 +402,8 @@ namespace Nerva.Bots
 					//TODO: Need to update last activity before saving
 					//File.WriteAllText(_discordUserFile, JsonSerializer.Serialize(_discordUsers));
 				}
+
+				await Logger.WriteDebug("Finished running UpdateUserActivity");
 			}
 			catch (Exception ex)
 			{

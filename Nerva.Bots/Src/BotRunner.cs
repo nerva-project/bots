@@ -276,66 +276,90 @@ namespace Nerva.Bots
 			}
 		}
 
-		private void UserActivityCheckProcess()
+		private async Task UserActivityCheckProcess()
 		{
 			try
 			{
-				Logger.WriteDebug("Running UserActivityCheckProcess. Guild Id: " + Globals.Bot.Config.ServerId + " | Discord User file: " + _discordUserFile);
-							
+				await Logger.WriteDebug("Running UserActivityCheckProcess. Guild Id: " + Globals.Bot.Config.ServerId + " | Discord User file: " + _discordUserFile);
 
-				// TODO: Load Discord users from storage to object in memory
-				
-				
-				// Read json file
-				//string json = File.ReadAllText(discordUserFile);
-				//FileStream stream = File.OpenRead(discordUserFile);
-				//discordUsers = JsonSerializer.Deserialize<List<DiscordUser>>(json);
-					
-
-				IGuild guild = Globals.Client.GetGuild(Globals.Bot.Config.ServerId);
-				var users = guild.GetUsersAsync(CacheMode.AllowDownload).Result;
-
-				Logger.WriteDebug("Users found: " + users.Count);
-
-				foreach (var user in users)
+				// Load Discord users from storage to object in memory				
+				if(File.Exists(_discordUserFile))
 				{
-					SocketGuildUser socketUser = (SocketGuildUser)user;
-					IEnumerable<SocketRole> userRoles = socketUser.Roles;
+					// Read json file
+					_discordUsers = JsonSerializer.Deserialize<Dictionary<ulong, DiscordUser>>(File.ReadAllText(_discordUserFile));
+					await Logger.WriteDebug("Users loaded from file. Count: " + _discordUsers.Count);
+				}
 
-					if(!_discordUsers.ContainsKey(socketUser.Id))
+				if(_discordUsers.Count == 0)
+				{
+					// No user file found so get them from Discord
+					var guild = Globals.Client.GetGuild(Globals.Bot.Config.ServerId);
+					var users = guild.GetUsersAsync();
+					
+					// Loop through users and load them to user object
+					await foreach (var user in users)
 					{
-						DiscordUser discordUser = new DiscordUser();
-						discordUser.Id = socketUser.Id;
-						discordUser.UserName = socketUser.Username;
-						discordUser.Discriminator = socketUser.Discriminator;
-						discordUser.JoinedDate = socketUser.JoinedAt.Value.DateTime;
+						SocketGuildUser socketUser = (SocketGuildUser)user;
+						IEnumerable<SocketRole> userRoles = socketUser.Roles;
 
-						//string stringRoles = string.Empty;
-						discordUser.Roles = new List<ulong>();						
-						foreach(SocketRole role in userRoles)
+						if(!socketUser.IsBot)
 						{
-							discordUser.Roles.Add(role.Id);
-							//stringRoles += " Id: " + role.Id + ", Name: " + role.Name;
+							if(!_discordUsers.ContainsKey(socketUser.Id))
+							{
+								DiscordUser discordUser = new DiscordUser();
+								discordUser.Id = socketUser.Id;
+								discordUser.UserName = socketUser.Username;
+								discordUser.Discriminator = socketUser.Discriminator;
+								discordUser.JoinedDate = socketUser.JoinedAt.Value.DateTime;
+
+								//string stringRoles = string.Empty;
+								discordUser.Roles = new List<ulong>();						
+								foreach(SocketRole role in userRoles)
+								{
+									discordUser.Roles.Add(role.Id);
+									//stringRoles += " Id: " + role.Id + ", Name: " + role.Name;
+								}
+
+								_discordUsers.Add(socketUser.Id, discordUser);
+							}
 						}
 
-						_discordUsers.Add(socketUser.Id, discordUser);
+						await Logger.WriteDebug("Users loaded from Discord. Count: " + _discordUsers.Count);
+
+						//Logger.WriteDebug("User Name: " + socketUser.Username + " | Discriminator: " + socketUser.Discriminator + " | Id: " + socketUser.Id + " | Joined: " + socketUser.JoinedAt.ToString() + " | IsBot: " + socketUser.IsBot + " | Roles: " + stringRoles);
+						
+						// socketUser.Id = Unique User ID of user
+						// socketUser.Username = UserName
+						// socketUser.Discriminator = 4 digit number after #
+					}
+
+					// Initial user pull from Disord so get last activity for each user
+					if(_discordUsers.Count > 0)
+					{
+						var channels = guild.TextChannels;
+
+						await Logger.WriteDebug("Text channel count: " + channels.Count);
+						foreach(var channel in channels)
+						{
+							await Logger.WriteDebug("Channel Id: " + channel.Id + " | Name: " + channel.Name);
+							var messages = channel.GetMessagesAsync(5).Flatten();
+
+							await foreach(var message in messages)
+							{
+								await Logger.WriteDebug("Message Id: " + message.Id + " | Author Id: " + message.Author.Id + " | Author UserName: " + message.Author.Username);
+							}
+						}
 					}
 
 
-					//Logger.WriteDebug("User Name: " + socketUser.Username + " | Discriminator: " + socketUser.Discriminator + " | Id: " + socketUser.Id + " | Joined: " + socketUser.JoinedAt.ToString() + " | IsBot: " + socketUser.IsBot + " | Roles: " + stringRoles);
-					
-					// socketUser.Id = Unique User ID of user
-					// socketUser.Username = UserName
-					// socketUser.Discriminator = 4 digit number after #
+					// Save users to file
+					if(_discordUsers.Count > 0)
+					{						
+						//TODO: Need to update last activity before saving
+						//File.WriteAllText(_discordUserFile, JsonSerializer.Serialize(_discordUsers));
+					}
 				}
-
-				// Save json to file
-				string json = JsonSerializer.Serialize(_discordUsers);
-				File.WriteAllText(_discordUserFile, json);
-
-						
-
-				// TODO: If initial run, get users from Discord, save them and crawl to get last activity for each user. Update last activity for each user in memory and save to storage
+		
 
 				// TODO: Kick users that did not verify within 3 days (They only have Unverified User Role and joined over 3 days ago)
 
@@ -343,11 +367,11 @@ namespace Nerva.Bots
 
 				// TODO: If warned date was more than 2 days ago and they have still not spoken, kick user and reset some date (so we do not attempt the kick them again?)
 
-				Logger.WriteDebug("Finished running UserActivityCheckProcess.");
+				await Logger.WriteDebug("Finished running UserActivityCheckProcess.");
 			}
 			catch (Exception ex)
 			{
-				Logger.HandleException(ex, "Exception in UserActivityCheckProcess!");
+				await Logger.HandleException(ex, "Exception in UserActivityCheckProcess!");
 			}
 		}
     }

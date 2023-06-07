@@ -15,6 +15,7 @@ using Nerva.Bots.Plugin;
 using Nerva.Bots.Helpers;
 using Nerva.Bots.Classes;
 using System.Timers;
+using System.Text.Json;
 
 namespace Nerva.Bots
 {
@@ -27,7 +28,7 @@ namespace Nerva.Bots
 		private int _reconnectCount = 0;
 		private DateTime _lastReconnectAttempt = DateTime.MinValue;
 
-		private IList<DiscordUser> _discordUsers = new List<DiscordUser>();
+		private IDictionary<ulong, DiscordUser> _discordUsers = new Dictionary<ulong, DiscordUser>();
 		private string _discordUserFile = Path.Combine(Environment.CurrentDirectory, "DiscordUsers.json");
 		private DateTime _lastUserCheckTime = DateTime.MinValue;
 
@@ -214,7 +215,7 @@ namespace Nerva.Bots
 					}
 				}
 
-				if(_lastUserCheckTime.AddHours(4) < DateTime.Now)
+				if(_lastReconnectAttempt.AddMinutes(1) < DateTime.Now && _lastUserCheckTime.AddHours(4) < DateTime.Now)
 				{
 					// This will initially run when bot starts and every 4 hours after that
 					_lastUserCheckTime = DateTime.Now;
@@ -281,27 +282,58 @@ namespace Nerva.Bots
 			{
 				Logger.WriteDebug("Running UserActivityCheckProcess. Guild Id: " + Globals.Bot.Config.ServerId + " | Discord User file: " + _discordUserFile);
 							
-				// Read json from file
-				//string json = JsonSerializer.Serialize(discordUsers);
-				//File.WriteAllText(discordUserFile, json);
 
-				// Save json to file
-				//json = File.ReadAllText(discordUserFile);
+				// TODO: Load Discord users from storage to object in memory
+				
+				
+				// Read json file
+				//string json = File.ReadAllText(discordUserFile);
 				//FileStream stream = File.OpenRead(discordUserFile);
 				//discordUsers = JsonSerializer.Deserialize<List<DiscordUser>>(json);
+					
 
-				
 				IGuild guild = Globals.Client.GetGuild(Globals.Bot.Config.ServerId);
 				var users = guild.GetUsersAsync(CacheMode.AllowDownload).Result;
 
 				Logger.WriteDebug("Users found: " + users.Count);
+
 				foreach (var user in users)
 				{
 					SocketGuildUser socketUser = (SocketGuildUser)user;
-					Logger.WriteDebug("User Name: " + socketUser.Username + " | Nickname: " + socketUser.Nickname + " | Display Name: " + socketUser.DisplayName + " | Discriminator: " + socketUser.Discriminator + " | Joined: " + socketUser.JoinedAt.ToString() + " | IsBot: " + socketUser.IsBot + " | Roles: " + socketUser.Roles.ToString());
+					IEnumerable<SocketRole> userRoles = socketUser.Roles;
+
+					if(!_discordUsers.ContainsKey(socketUser.Id))
+					{
+						DiscordUser discordUser = new DiscordUser();
+						discordUser.Id = socketUser.Id;
+						discordUser.UserName = socketUser.Username;
+						discordUser.Discriminator = socketUser.Discriminator;
+						discordUser.JoinedDate = socketUser.JoinedAt.Value.DateTime;
+
+						//string stringRoles = string.Empty;
+						discordUser.Roles = new List<ulong>();						
+						foreach(SocketRole role in userRoles)
+						{
+							discordUser.Roles.Add(role.Id);
+							//stringRoles += " Id: " + role.Id + ", Name: " + role.Name;
+						}
+
+						_discordUsers.Add(socketUser.Id, discordUser);
+					}
+
+
+					//Logger.WriteDebug("User Name: " + socketUser.Username + " | Discriminator: " + socketUser.Discriminator + " | Id: " + socketUser.Id + " | Joined: " + socketUser.JoinedAt.ToString() + " | IsBot: " + socketUser.IsBot + " | Roles: " + stringRoles);
+					
+					// socketUser.Id = Unique User ID of user
+					// socketUser.Username = UserName
+					// socketUser.Discriminator = 4 digit number after #
 				}
 
-				// TODO: Load Discord users from storage to object in memory		
+				// Save json to file
+				string json = JsonSerializer.Serialize(_discordUsers);
+				File.WriteAllText(_discordUserFile, json);
+
+						
 
 				// TODO: If initial run, get users from Discord, save them and crawl to get last activity for each user. Update last activity for each user in memory and save to storage
 

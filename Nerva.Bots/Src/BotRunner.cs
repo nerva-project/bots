@@ -276,28 +276,28 @@ namespace Nerva.Bots
 			}
 		}
 
-		private async Task UserActivityCheckProcess()
+		private void UserActivityCheckProcess()
 		{
 			try
 			{
-				await Logger.WriteDebug("Running UserActivityCheckProcess. Guild Id: " + Globals.Bot.Config.ServerId + " | Discord User file: " + _discordUserFile);
+				Logger.WriteDebug("Running UserActivityCheckProcess. Guild Id: " + Globals.Bot.Config.ServerId + " | Discord User file: " + _discordUserFile);
 
 				// Load Discord users from storage to object in memory				
 				if(File.Exists(_discordUserFile))
 				{
 					// Read json file
 					_discordUsers = JsonSerializer.Deserialize<Dictionary<ulong, DiscordUser>>(File.ReadAllText(_discordUserFile));
-					await Logger.WriteDebug("Users loaded from file. Count: " + _discordUsers.Count);
+					Logger.WriteDebug("Users loaded from file. Count: " + _discordUsers.Count);
 				}
 
 				if(_discordUsers.Count == 0)
 				{
 					// No user file found so get them from Discord
-					var guild = Globals.Client.GetGuild(Globals.Bot.Config.ServerId);
-					var users = guild.GetUsersAsync();
+					IGuild guild = Globals.Client.GetGuild(Globals.Bot.Config.ServerId);
+					var users = guild.GetUsersAsync(CacheMode.AllowDownload).Result;
 					
 					// Loop through users and load them to user object
-					await foreach (var user in users)
+					foreach (var user in users)
 					{
 						SocketGuildUser socketUser = (SocketGuildUser)user;
 						IEnumerable<SocketRole> userRoles = socketUser.Roles;
@@ -324,7 +324,7 @@ namespace Nerva.Bots
 							}
 						}
 
-						await Logger.WriteDebug("Users loaded from Discord. Count: " + _discordUsers.Count);
+						Logger.WriteDebug("Users loaded from Discord. Count: " + _discordUsers.Count);
 
 						//Logger.WriteDebug("User Name: " + socketUser.Username + " | Discriminator: " + socketUser.Discriminator + " | Id: " + socketUser.Id + " | Joined: " + socketUser.JoinedAt.ToString() + " | IsBot: " + socketUser.IsBot + " | Roles: " + stringRoles);
 						
@@ -336,27 +336,7 @@ namespace Nerva.Bots
 					// Initial user pull from Disord so get last activity for each user
 					if(_discordUsers.Count > 0)
 					{
-						var channels = guild.TextChannels;
-
-						await Logger.WriteDebug("Text channel count: " + channels.Count);
-						foreach(var channel in channels)
-						{
-							await Logger.WriteDebug("Channel Id: " + channel.Id + " | Name: " + channel.Name);
-							var messages = channel.GetMessagesAsync(5).Flatten();
-
-							await foreach(var message in messages)
-							{
-								await Logger.WriteDebug("Message Id: " + message.Id + " | Author Id: " + message.Author.Id + " | Author UserName: " + message.Author.Username);
-							}
-						}
-					}
-
-
-					// Save users to file
-					if(_discordUsers.Count > 0)
-					{						
-						//TODO: Need to update last activity before saving
-						//File.WriteAllText(_discordUserFile, JsonSerializer.Serialize(_discordUsers));
+						UpdateUserActivity();
 					}
 				}
 		
@@ -367,14 +347,47 @@ namespace Nerva.Bots
 
 				// TODO: If warned date was more than 2 days ago and they have still not spoken, kick user and reset some date (so we do not attempt the kick them again?)
 
-				await Logger.WriteDebug("Finished running UserActivityCheckProcess.");
+				Logger.WriteDebug("Finished running UserActivityCheckProcess.");
 			}
 			catch (Exception ex)
 			{
-				await Logger.HandleException(ex, "Exception in UserActivityCheckProcess!");
+				Logger.HandleException(ex, "UserActivityCheckProcess: ");
+			}
+		}
+
+		private async Task UpdateUserActivity()
+		{
+			try
+			{
+				var socketGuild = Globals.Client.GetGuild(Globals.Bot.Config.ServerId);
+				var channels = socketGuild.TextChannels;
+
+				await Logger.WriteDebug("Text channel count: " + channels.Count);
+				foreach(var channel in channels)
+				{
+					await Logger.WriteDebug("Channel Id: " + channel.Id + " | Name: " + channel.Name);
+					var messages = channel.GetMessagesAsync(5).Flatten();
+
+					await foreach(var message in messages)
+					{
+						await Logger.WriteDebug("Message Id: " + message.Id + " | Author Id: " + message.Author.Id + " | Author UserName: " + message.Author.Username);
+					}
+				}
+
+				// Save users to file
+				if(_discordUsers.Count > 0)
+				{						
+					//TODO: Need to update last activity before saving
+					//File.WriteAllText(_discordUserFile, JsonSerializer.Serialize(_discordUsers));
+				}
+			}
+			catch (Exception ex)
+			{
+				await Logger.HandleException(ex, "UpdateUserActivity: ");
 			}
 		}
     }
+
 
     public static class Globals
     {

@@ -230,6 +230,7 @@ namespace Nerva.Bots
 					{
 						// Run once per hour
 						KickProcess();
+						_lastKickProcessTime = DateTime.Now;
 					}
 
 					if(_userDictionarySavedTime.AddMinutes(10) < DateTime.Now && _isUserDictionaryChanged)

@@ -12,5 +12,7 @@ namespace Nerva.Bots.Classes
         public IList<ulong> Roles { get; set; }
         public DateTime LastPostDate { get; set; }
         public DateTime WarnedDate { get; set; }
+        public DateTime KickDate { get; set; }
+        public string KickReason { get; set; }
     }
 }

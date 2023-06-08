@@ -12,9 +12,6 @@ namespace Atom.Commands
     [Command("verify", "Get verified and access the server.")]
     public class Verify : ICommand
     {
-        private const ulong UNVERIFIED_USER_ROLE_ID = 715496358089326703;
-        private const ulong VERIFIED_USER_ROLE_ID = 715470723812032602;
-
         public void Process(SocketUserMessage msg)
         {
             try
@@ -27,8 +24,8 @@ namespace Atom.Commands
                 }
                 
                 IGuild guild = Globals.Client.GetGuild(cfg.ServerId);
-                var unverifiedRole = guild.GetRole(UNVERIFIED_USER_ROLE_ID);
-                var verifiedRole = guild.GetRole(VERIFIED_USER_ROLE_ID);
+                var unverifiedRole = guild.GetRole(Constants.UNVERIFIED_USER_ROLE_ID);
+                var verifiedRole = guild.GetRole(Constants.VERIFIED_USER_ROLE_ID);
 
                 var u = guild.GetUserAsync(msg.Author.Id).Result;
 

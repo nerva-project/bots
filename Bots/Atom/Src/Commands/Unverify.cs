@@ -13,9 +13,6 @@ namespace Atom.Commands
     [Command("unverify", "Manually set the Unverified user role for all unverified users. Admin use only")]
     public class Unverify : ICommand
     {
-        private const ulong UNVERIFIED_USER_ROLE_ID = 715496358089326703;
-        private const ulong VERIFIED_USER_ROLE_ID = 715470723812032602;
-
         public void Process(SocketUserMessage msg)
         {
             try
@@ -31,15 +28,15 @@ namespace Atom.Commands
 
                 IGuild guild = Globals.Client.GetGuild(cfg.ServerId);
 
-                var unverifiedRole = guild.GetRole(UNVERIFIED_USER_ROLE_ID);
+                var unverifiedRole = guild.GetRole(Constants.UNVERIFIED_USER_ROLE_ID);
                 var users = guild.GetUsersAsync(CacheMode.AllowDownload).Result;
 
                 int count = 0;
                 foreach (var u in users)
                 {
                     SocketGuildUser sgu = (SocketGuildUser)u;
-                    var hasVerifiedRole = sgu.Roles.Where(x => x.Id == VERIFIED_USER_ROLE_ID).Count() > 0;
-                    var hasUnverifiedRole = sgu.Roles.Where(x => x.Id == UNVERIFIED_USER_ROLE_ID).Count() > 0;
+                    var hasVerifiedRole = sgu.Roles.Where(x => x.Id == Constants.VERIFIED_USER_ROLE_ID).Count() > 0;
+                    var hasUnverifiedRole = sgu.Roles.Where(x => x.Id == Constants.UNVERIFIED_USER_ROLE_ID).Count() > 0;
                     if (hasVerifiedRole || hasUnverifiedRole)
                     {
                         continue;
@@ -50,7 +47,7 @@ namespace Atom.Commands
                         sgu.AddRoleAsync(unverifiedRole).Wait();
                     }
 
-                    hasUnverifiedRole = sgu.Roles.Where(x => x.Id == UNVERIFIED_USER_ROLE_ID).Count() > 0;
+                    hasUnverifiedRole = sgu.Roles.Where(x => x.Id == Constants.UNVERIFIED_USER_ROLE_ID).Count() > 0;
 
                     if (!hasUnverifiedRole)
                     {

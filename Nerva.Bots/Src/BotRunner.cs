@@ -32,6 +32,7 @@ namespace Nerva.Bots
 		private string _discordUserFile = Path.Combine(Environment.CurrentDirectory, "DiscordUsers.json");
 		private bool _isUserDictionaryChanged = false;
 		private DateTime _userDictionarySavedTime = DateTime.Now;
+		private DateTime _lastKickProcessTime = DateTime.Now;
 
 		private const int _keepAliveInterval = 60000;		// 1 minute
         [STAThread]
@@ -216,18 +217,28 @@ namespace Nerva.Bots
 					}
 				}
 
-				if(_lastReconnectAttempt.AddMinutes(1) < DateTime.Now && _discordUsers.Count == 0)
+				if(Globals.BotAssembly.GetName().Name.ToLower().Contains("atom"))
 				{
-					// This will run once
-					LoadDiscordUsers();
-				}
+					// Only want to run this as Atom
+					if(_lastReconnectAttempt.AddMinutes(1) < DateTime.Now && _discordUsers.Count == 0)
+					{
+						// This should run once shortly after bot starts
+						LoadDiscordUsers();
+					}
 
-				if(_userDictionarySavedTime.AddMinutes(10) < DateTime.Now && _isUserDictionaryChanged)
-				{
-					// Save every 10 minutes and only if there were updates
-					_userDictionarySavedTime = DateTime.Now;
-					_isUserDictionaryChanged = false;
-					SaveUserDictionaryToFile();
+					if(_lastKickProcessTime.AddHours(1) < DateTime.Now)
+					{
+						// Run once per hour
+						KickProcess();
+					}
+
+					if(_userDictionarySavedTime.AddMinutes(10) < DateTime.Now && _isUserDictionaryChanged)
+					{
+						// Save every 10 minutes and only if there were updates
+						_userDictionarySavedTime = DateTime.Now;
+						_isUserDictionaryChanged = false;
+						SaveUserDictionaryToFile();
+					}
 				}
             }
             catch (Exception ex)
@@ -262,7 +273,11 @@ namespace Nerva.Bots
 				if (msg == null)
 					return;
 
-				UpdateUserActivity(message);
+				if(Globals.BotAssembly.GetName().Name.ToLower().Contains("atom"))
+				{
+					// Only want to run this as Atom
+					UpdateUserActivity(message);
+				}
 
 				Regex pattern = new Regex($@"\{Globals.Bot.Config.CmdPrefix}\w+");
 				var commands = pattern.Matches(msg.Content.ToLower()).Cast<Match>().Select(match => match.Value).ToArray();
@@ -283,6 +298,113 @@ namespace Nerva.Bots
 			catch (Exception ex)
 			{
 				await Logger.HandleException(ex);
+			}
+		}
+
+		private void KickProcess()
+		{
+			try
+			{
+				foreach(DiscordUser user in _discordUsers.Values)
+				{
+					bool isUnverified = false;
+					bool isVerified = false;
+					bool isSafe = false;
+
+					foreach(ulong roleId in user.Roles)
+					{
+						if(roleId == Constants.EVERYONE_USER_ROLE_ID)
+						{
+							// Ignore @everyone role
+						}
+						else if(roleId == Constants.UNVERIFIED_USER_ROLE_ID)
+						{							
+							isUnverified = true;
+						}
+						else if(roleId == Constants.ADMIN_USER_ROLE_ID || roleId == Constants.ENFORCER_USER_ROLE_ID)
+						{							
+							isSafe = true;
+							break;
+						}
+						else if(roleId == Constants.VERIFIED_USER_ROLE_ID)
+						{
+							isVerified = true;
+						}
+						else
+						{
+							// Do not care about other roles so just ignore
+						}
+					}
+
+					if(isSafe)
+					{
+						// Those are safe
+						continue;
+					}
+					else if(isVerified)
+					{
+						if(user.LastPostDate.AddDays(365) < DateTime.Now)
+						{
+							if(user.WarnedDate == DateTime.MinValue)
+							{
+								// User has not been warned yet so warn them
+								Logger.WriteDebug("Warning inactive user: " + user.UserName + " | Id: " + user.Id + " | Posted: " + user.LastPostDate.ToString());
+								//user.WarnedDate = DateTime.Now;
+								//_isUserDictionaryChanged = true;
+
+
+								//TODO: Implement sending warning message to user
+							}
+							else if(user.WarnedDate.AddDays(1) < DateTime.Now)
+							{
+								// User has been warned more than 3 days ago and they have not posted so kick them
+								Logger.WriteDebug("Kicking inactive user: " + user.UserName + " | Id: " + user.Id + " | Posted: " + user.LastPostDate.ToString());
+								//user.KickReason = "Inactive";
+								//user.KickDate = DateTime.Now;
+								//_isUserDictionaryChanged = true;
+
+
+								// TODO: Implement kicking user
+							}
+						}
+						else 
+						{
+							// Reset values if user spoke/rejoined
+							if(user.WarnedDate != DateTime.MinValue)
+							{
+								user.WarnedDate = DateTime.MinValue;
+							}
+
+							if(user.KickDate != DateTime.MinValue)
+							{
+								user.KickDate = DateTime.MinValue;
+							}
+						}
+					}
+					else if(isUnverified)
+					{
+						// Kick unverified user if not verified within 3 days
+						if(user.JoinedDate.AddDays(3) < DateTime.Now)
+						{
+							Logger.WriteDebug("Kicking unverified user: " + user.UserName + " | Id: " + user.Id + " | Joined: " + user.JoinedDate.ToString());
+							//user.KickReason = "Unverified";
+							//user.KickDate = DateTime.Now;
+							//_isUserDictionaryChanged = true;
+
+
+							// TODO: Implement kicking user
+						}
+					}
+					else 
+					{
+						// Why are you here?
+						Logger.WriteDebug("KickProcess else, User: " + user.UserName + " | Id: " + user.Id);
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.HandleException(ex, "KickProcess: ");
 			}
 		}
 
@@ -385,13 +507,6 @@ namespace Nerva.Bots
 						GetUserActivityFromDiscord(5000);
 					}
 				}
-		
-
-				// TODO: Kick users that did not verify within 3 days (They only have Unverified User Role and joined over 3 days ago)
-
-				// TODO: Warn users who did not post in a year. Update warned date in memory and storage
-
-				// TODO: If warned date was more than 2 days ago and they have still not spoken, kick user and reset some date (so we do not attempt the kick them again?)
 
 				Logger.WriteDebug("Finished running UserActivityCheckProcess.");
 			}

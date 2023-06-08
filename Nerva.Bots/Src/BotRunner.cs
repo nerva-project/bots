@@ -288,7 +288,7 @@ namespace Nerva.Bots
 
 		private void UpdateUserActivity(SocketMessage message)
 		{
-			if(message.Author != null && !message.Author.IsBot)
+			if(_discordUsers != null && _discordUsers.Count > 0 && message.Author != null && !message.Author.IsBot)
 			{
 				if(!_discordUsers.ContainsKey(message.Author.Id))
 				{

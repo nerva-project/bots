@@ -30,7 +30,8 @@ namespace Nerva.Bots
 
 		private IDictionary<ulong, DiscordUser> _discordUsers = new Dictionary<ulong, DiscordUser>();
 		private string _discordUserFile = Path.Combine(Environment.CurrentDirectory, "DiscordUsers.json");
-		private DateTime _lastUserCheckTime = DateTime.MinValue;
+		private bool _isUserDictionaryChanged = false;
+		private DateTime _userDictionarySavedTime = DateTime.Now;
 
 		private const int _keepAliveInterval = 60000;		// 1 minute
         [STAThread]
@@ -215,11 +216,18 @@ namespace Nerva.Bots
 					}
 				}
 
-				if(_lastReconnectAttempt.AddMinutes(1) < DateTime.Now && _lastUserCheckTime.AddHours(4) < DateTime.Now)
+				if(_lastReconnectAttempt.AddMinutes(1) < DateTime.Now && _discordUsers.Count == 0)
 				{
-					// This will initially run when bot starts and every 4 hours after that
-					_lastUserCheckTime = DateTime.Now;
-					UserActivityCheckProcess();
+					// This will run once
+					LoadDiscordUsers();
+				}
+
+				if(_userDictionarySavedTime.AddMinutes(10) < DateTime.Now && _isUserDictionaryChanged)
+				{
+					// Save every 10 minutes and only if there were updates
+					_userDictionarySavedTime = DateTime.Now;
+					_isUserDictionaryChanged = false;
+					SaveUserDictionaryToFile();
 				}
             }
             catch (Exception ex)
@@ -254,6 +262,8 @@ namespace Nerva.Bots
 				if (msg == null)
 					return;
 
+				UpdateUserActivity(message);
+
 				Regex pattern = new Regex($@"\{Globals.Bot.Config.CmdPrefix}\w+");
 				var commands = pattern.Matches(msg.Content.ToLower()).Cast<Match>().Select(match => match.Value).ToArray();
 
@@ -276,23 +286,63 @@ namespace Nerva.Bots
 			}
 		}
 
-		private void UserActivityCheckProcess()
+		private void UpdateUserActivity(SocketMessage message)
+		{
+			if(message.Author != null && !message.Author.IsBot)
+			{
+				if(!_discordUsers.ContainsKey(message.Author.Id))
+				{
+					SocketGuildUser socketUser = (SocketGuildUser)message.Author;
+					IEnumerable<SocketRole> userRoles = socketUser.Roles;
+
+					// Add new user to dictionary
+					DiscordUser newUser = new DiscordUser();
+					newUser.Id = message.Author.Id;
+					newUser.UserName = message.Author.Username;
+					newUser.Discriminator = message.Author.Discriminator;
+					newUser.JoinedDate = message.Author.CreatedAt.DateTime;
+
+					newUser.Roles = new List<ulong>();
+					foreach(SocketRole role in userRoles)
+					{
+						newUser.Roles.Add(role.Id);
+					}
+
+					_discordUsers.Add(message.Author.Id, newUser);
+				}
+
+				if(_discordUsers.ContainsKey(message.Author.Id) && _discordUsers[message.Author.Id].LastPostDate < message.CreatedAt.DateTime)
+				{
+					Logger.WriteDebug("Updating last post date for User: " + message.Author.Username + " to: " + message.CreatedAt.DateTime.ToString());
+					_discordUsers[message.Author.Id].LastPostDate = message.CreatedAt.DateTime;
+
+					// This way we know that we need to save to file but don't want to do it after every message
+					_isUserDictionaryChanged = true;
+				}
+			}
+		}
+
+		private void LoadDiscordUsers()
 		{
 			try
 			{
 				Logger.WriteDebug("Running UserActivityCheckProcess. Guild Id: " + Globals.Bot.Config.ServerId + " | Discord User file: " + _discordUserFile);
 
-				// Load Discord users from storage to object in memory				
 				if(File.Exists(_discordUserFile))
 				{
-					// Read json file
+					// Load Discord users from storage to object in memory	
 					_discordUsers = JsonSerializer.Deserialize<Dictionary<ulong, DiscordUser>>(File.ReadAllText(_discordUserFile));
 					Logger.WriteDebug("Users loaded from file. Count: " + _discordUsers.Count);
-				}
 
-				if(_discordUsers.Count == 0)
+					if(_discordUsers.Count > 0)
+					{
+						// Refresh users as we don't know why or for how long bot has been down
+						GetUserActivityFromDiscord(100);
+					}
+				}
+				else
 				{
-					// No user file found so get them from Discord
+					// No user file found so get users from Discord
 					IGuild guild = Globals.Client.GetGuild(Globals.Bot.Config.ServerId);
 					var users = guild.GetUsersAsync(CacheMode.AllowDownload).Result;
 					
@@ -324,19 +374,15 @@ namespace Nerva.Bots
 							}
 						}
 					
-						//Logger.WriteDebug("User Name: " + socketUser.Username + " | Discriminator: " + socketUser.Discriminator + " | Id: " + socketUser.Id + " | Joined: " + socketUser.JoinedAt.ToString() + " | IsBot: " + socketUser.IsBot + " | Roles: " + stringRoles);
-						
-						// socketUser.Id = Unique User ID of user
-						// socketUser.Username = UserName
-						// socketUser.Discriminator = 4 digit number after #
+						//Logger.WriteDebug("User Name: " + socketUser.Username + " | Discriminator: " + socketUser.Discriminator + " | Id: " + socketUser.Id + " | Joined: " + socketUser.JoinedAt.ToString() + " | IsBot: " + socketUser.IsBot + " | Roles: " + stringRoles);					
 					}
 
 					Logger.WriteDebug("Users loaded from Discord. Count: " + _discordUsers.Count);
 
-					// Initial user pull from Disord so get last activity for each user
+					// Initial user pull from Disord so get many messages
 					if(_discordUsers.Count > 0)
 					{
-						UpdateUserActivity();
+						GetUserActivityFromDiscord(5000);
 					}
 				}
 		
@@ -355,11 +401,11 @@ namespace Nerva.Bots
 			}
 		}
 
-		private async Task UpdateUserActivity()
+		private async Task GetUserActivityFromDiscord(int numberOfMessages)
 		{
 			try
 			{
-				await Logger.WriteDebug("Started running UpdateUserActivity");
+				await Logger.WriteDebug("Started running GetUserActivityFromDiscord");
 
 				var socketGuild = Globals.Client.GetGuild(Globals.Bot.Config.ServerId);
 				var channels = socketGuild.TextChannels;
@@ -375,7 +421,7 @@ namespace Nerva.Bots
 					}
 					else 
 					{
-						var messages = channel.GetMessagesAsync(5).Flatten();
+						var messages = channel.GetMessagesAsync(numberOfMessages).Flatten();
 
 						await foreach(var message in messages)
 						{
@@ -384,30 +430,45 @@ namespace Nerva.Bots
 							{
 								if(message.CreatedAt.DateTime > _discordUsers[message.Author.Id].LastPostDate)
 								{
-									await Logger.WriteDebug("Updating Last Post Date for User Id: " + message.Author.Id + " | UserName: " + message.Author.Username + " | Posted: " + message.CreatedAt.DateTime.ToShortDateString());
+									await Logger.WriteDebug("Updating Last Post Date for User Id: " + message.Author.Id + " | UserName: " + message.Author.Username + " | Posted: " + message.CreatedAt.DateTime.ToString());
 									_discordUsers[message.Author.Id].LastPostDate = message.CreatedAt.DateTime;
 								}
 							}
+							//else 
+							//{
+							//	await Logger.WriteError("User not found in Dictionary. User Id: " + message.Author.Id + " | UserName: " + message.Author.Username);
+							//}
 						}
 					}
 
-
-					// Don't go too fast getting messages from channels
+					// Don't go too fast when getting messages from channels
 					await Task.Delay(1000);
 				}
 
 				// Save users to file
-				if(_discordUsers.Count > 0)
-				{						
-					//TODO: Need to update last activity before saving
-					//File.WriteAllText(_discordUserFile, JsonSerializer.Serialize(_discordUsers));
-				}
+				SaveUserDictionaryToFile();
 
-				await Logger.WriteDebug("Finished running UpdateUserActivity");
+				await Logger.WriteDebug("Finished running GetUserActivityFromDiscord");
 			}
 			catch (Exception ex)
 			{
-				await Logger.HandleException(ex, "UpdateUserActivity: ");
+				await Logger.HandleException(ex, "GetUserActivityFromDiscord: ");
+			}
+		}
+
+		private void SaveUserDictionaryToFile()
+		{
+			try
+			{
+				if(_discordUsers != null && _discordUsers.Count > 0)
+				{						
+					File.WriteAllText(_discordUserFile, JsonSerializer.Serialize(_discordUsers));
+					Logger.WriteDebug("User Dictionary saved to file. Record count: " + _discordUsers.Count);
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.HandleException(ex, "SaveUserDictionaryToFile: ");
 			}
 		}
     }

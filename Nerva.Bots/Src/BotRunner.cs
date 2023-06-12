@@ -356,24 +356,24 @@ namespace Nerva.Bots
 					}
 					else if(isVerified)
 					{
-						if(user.LastPostDate.AddMonths(6) < DateTime.Now)
+						if(user.JoinedDate.AddMonths(6) < DateTime.Now && user.LastPostDate.AddMonths(6) < DateTime.Now)
 						{
 							if(user.WarnedDate == DateTime.MinValue)
 							{
 								// User has not been warned yet so warn them
-								Logger.WriteDebug("Warning inactive user: " + user.UserName + " | Id: " + user.Id + " | Posted: " + user.LastPostDate.ToString());								
-								//user.WarnedDate = DateTime.Now;
-								//_isUserDictionaryChanged = true;
-								//SendDmToUser(user, "Hi. This is your friendly Atom Bot from Nerva server. You have not posted anything since: " + user.LastPostDate.ToShortDateString() + ". If you'd like to stay, please post something intelligent within 3 days in one of non-archived channels or I will remove you.");
+								Logger.WriteDebug("KickProcess: Warning inactive user: " + user.UserName + " | Id: " + user.Id + " | Last posted: " + user.LastPostDate.ToString());								
+								user.WarnedDate = DateTime.Now;
+								_isUserDictionaryChanged = true;
+								SendDmToUser(user, "Hi. This is your friendly Atom Bot from Nerva server. You have not posted anything since: " + user.LastPostDate.ToShortDateString() + ". If you'd like to stay, please post something intelligent within 3 days in one of non-archived channels or I will remove you.");
 							}
-							else if(user.WarnedDate.AddDays(3) < DateTime.Now)
+							else if(user.KickDate == DateTime.MinValue && user.WarnedDate.AddDays(3) < DateTime.Now)
 							{
 								// User has been warned more than 3 days ago and they have not posted so kick them
-								Logger.WriteDebug("Kicking inactive user: " + user.UserName + " | Id: " + user.Id + " | Posted: " + user.LastPostDate.ToString());								
-								//user.KickReason = "Inactive";
-								//user.KickDate = DateTime.Now;
-								//_isUserDictionaryChanged = true;
-								//KickUser(user, "User still inactive after inactivity warning");
+								Logger.WriteDebug("KickProcess: Kicking inactive user: " + user.UserName + " | Id: " + user.Id + " | Last posted: " + user.LastPostDate.ToString());								
+								user.KickReason = "Inactive";
+								user.KickDate = DateTime.Now;
+								_isUserDictionaryChanged = true;
+								KickUser(user, "User still inactive after inactivity warning");								
 							}
 						}
 						else 
@@ -381,16 +381,15 @@ namespace Nerva.Bots
 							// Reset values if user spoke/rejoined
 							if(user.WarnedDate != DateTime.MinValue)
 							{								
-								Logger.WriteDebug("Resetting warned date for user: " + user.UserName);
+								Logger.WriteDebug("KickProcess: Resetting warned date for user: " + user.UserName);
 								user.WarnedDate = DateTime.MinValue;
 								_isUserDictionaryChanged = true;
-								//SendDmToUser(user, "Hi. This is Atom Bot from Nerva server again. Thank you for choosing to stay with us!");
+								SendDmToUser(user, "Hi. This is Atom Bot from Nerva server again. Your post has been noted. Thank you for choosing to stay with us!");
 							}
 
 							if(user.KickDate != DateTime.MinValue)
 							{
-								
-								Logger.WriteDebug("Resetting kick date for user: " + user.UserName);
+								Logger.WriteDebug("KickProcess: Resetting kick date for user: " + user.UserName);
 								user.KickDate = DateTime.MinValue;
 								_isUserDictionaryChanged = true;
 							}
@@ -399,19 +398,19 @@ namespace Nerva.Bots
 					else if(isUnverified)
 					{
 						// Kick unverified user if not verified within 24 hours
-						if(user.JoinedDate.AddDays(1) < DateTime.Now)
+						if(user.KickDate == DateTime.MinValue && user.JoinedDate.AddDays(1) < DateTime.Now)
 						{
-							Logger.WriteDebug("Kicking unverified user: " + user.UserName + " | Id: " + user.Id + " | Joined: " + user.JoinedDate.ToString());							
-							//user.KickReason = "Unverified";
-							//user.KickDate = DateTime.Now;
-							//_isUserDictionaryChanged = true;
-							//KickUser(user, "User did not verify within 24 hours");
+							Logger.WriteDebug("KickProcess: Kicking unverified user: " + user.UserName + " | Id: " + user.Id + " | Joined: " + user.JoinedDate.ToString());							
+							user.KickReason = "Unverified";
+							user.KickDate = DateTime.Now;
+							_isUserDictionaryChanged = true;
+							KickUser(user, "User did not verify within 24 hours");
 						}
 					}
 					else 
 					{
 						// Why are you here?
-						Logger.WriteDebug("KickProcess else, User: " + user.UserName + " | Id: " + user.Id);
+						Logger.WriteDebug("KickProcess: Else, User: " + user.UserName + " | Id: " + user.Id);
 					}
 				}
 			}
@@ -433,6 +432,9 @@ namespace Nerva.Bots
 			{
 				Logger.HandleException(ex, "KickUser: ");
 			}
+			
+			// Don't go too fast
+			Task.Delay(1000);
 		}
 
 		private void SendDmToUser(DiscordUser discordUser, string message)
@@ -450,12 +452,15 @@ namespace Nerva.Bots
 					// This method will throw an Discord.Net.HttpException if the user cannot receive DMs due to privacy reasons or if the user has the sender blocked
 					// You may want to consider catching for Discord.Net.HttpException.DiscordCode 50007 when using this method.
 					Logger.HandleException(discordEx, "SendDmToUser Discord Ex: ");
-				}				
+				}
 			}
 			catch (Exception ex)
 			{
 				Logger.HandleException(ex, "SendDmToUser: ");
 			}
+
+			// Don't go too fast
+			Task.Delay(1000);
 		}
 
 		private void AddUserToDictionary(IUser user)
@@ -529,8 +534,6 @@ namespace Nerva.Bots
 						bool isUserVerified = false;
 						bool isUserUnverified = false;
 
-						// TODO: Need a way to sync permissions between Discord and _discordUsers so dictionary has proper permissions
-
 						// First make sure that user not yet verified
 						foreach(ulong roleId in _discordUsers[message.Author.Id].Roles)
 						{
@@ -566,9 +569,9 @@ namespace Nerva.Bots
 							socketGuildUser.AddRoleAsync(verifiedRole).Wait();
 							_discordUsers[message.Author.Id].Roles.Add(verifiedRole.Id);
 
-							if(_discordUsers[message.Author.Id].JoinedDate.AddDays(2) < DateTime.Now)
+							if(!string.IsNullOrEmpty(_discordUsers[message.Author.Id].KickReason))
 							{
-								// Assume user joined previously and is coming back
+								// This will only work if user was kicked previously. It's OK for now
 								// TODO: Try to come up with a better way to handle this
 								DiscordResponse.Reply(message, text: "Welcome back @" + message.Author.Username + "#" + message.Author.Discriminator + ". You're now verified.");
 								Logger.WriteDebug("VerifyUser welcomed back returning user: " + message.Author.Username);
@@ -714,14 +717,27 @@ namespace Nerva.Bots
 				foreach(DiscordUser dictionaryUser in _discordUsers.Values)
 				{
 					// Update user JoinedDate if different in Discord
-					foreach(SocketGuildUser socketUser in roleUnverified.Members)
+					foreach(SocketGuildUser socketGuildUser in roleUnverified.Members)
 					{
-						if(socketUser.Id == dictionaryUser.Id)
+						if(socketGuildUser.Id == dictionaryUser.Id)
 						{
-							if(dictionaryUser.JoinedDate != socketUser.JoinedAt)
+							if(dictionaryUser.JoinedDate != socketGuildUser.JoinedAt)
 							{
-								dictionaryUser.JoinedDate = socketUser.JoinedAt.Value.DateTime;
-								Logger.WriteDebug("SyncRolesWithDiscord changed Guild Joined for User: " + dictionaryUser.UserName + " | New Date: " + dictionaryUser.JoinedDate.ToString());
+								dictionaryUser.JoinedDate = socketGuildUser.JoinedAt.Value.DateTime;
+								Logger.WriteDebug("SyncRolesWithDiscord changed Guild Joined for Unverified User: " + dictionaryUser.UserName + " | New Date: " + dictionaryUser.JoinedDate.ToString());
+							}
+						}
+					}
+
+					// Need to do this for Verified users as well or it might kick them too soon
+					foreach(SocketGuildUser socketGuildUser in roleVerified.Members)
+					{
+						if(socketGuildUser.Id == dictionaryUser.Id)
+						{
+							if(dictionaryUser.JoinedDate != socketGuildUser.JoinedAt)
+							{
+								dictionaryUser.JoinedDate = socketGuildUser.JoinedAt.Value.DateTime;
+								Logger.WriteDebug("SyncRolesWithDiscord changed Guild Joined for Verified User: " + dictionaryUser.UserName + " | New Date: " + dictionaryUser.JoinedDate.ToString());
 							}
 						}
 					}

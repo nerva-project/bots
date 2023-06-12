@@ -315,15 +315,14 @@ namespace Nerva.Bots
 		{
 			try
 			{
+				// Need to sync roles or it will not know if user roles changed through Discord
+				SyncRolesWithDiscord();
+
 				foreach(DiscordUser user in _discordUsers.Values)
 				{
 					bool isUnverified = false;
 					bool isVerified = false;
 					bool isSafe = false;
-
-
-					// Need to sync roles or it will not know that user was verified through Discord
-					SyncRolesWithDiscord();
 
 					foreach(ulong roleId in user.Roles)
 					{
@@ -357,56 +356,56 @@ namespace Nerva.Bots
 					}
 					else if(isVerified)
 					{
-						if(user.LastPostDate.AddDays(365) < DateTime.Now)
+						if(user.LastPostDate.AddMonths(6) < DateTime.Now)
 						{
 							if(user.WarnedDate == DateTime.MinValue)
 							{
 								// User has not been warned yet so warn them
-								Logger.WriteDebug("Warning inactive user: " + user.UserName + " | Id: " + user.Id + " | Posted: " + user.LastPostDate.ToString());
+								Logger.WriteDebug("Warning inactive user: " + user.UserName + " | Id: " + user.Id + " | Posted: " + user.LastPostDate.ToString());								
 								//user.WarnedDate = DateTime.Now;
 								//_isUserDictionaryChanged = true;
-
-
-								//TODO: Implement sending warning message to user
+								//SendDmToUser(user, "Hi. This is your friendly Atom Bot from Nerva server. You have not posted anything since: " + user.LastPostDate.ToShortDateString() + ". If you'd like to stay, please post something intelligent within 3 days in one of non-archived channels or I will remove you.");
 							}
-							else if(user.WarnedDate.AddDays(1) < DateTime.Now)
+							else if(user.WarnedDate.AddDays(3) < DateTime.Now)
 							{
 								// User has been warned more than 3 days ago and they have not posted so kick them
-								Logger.WriteDebug("Kicking inactive user: " + user.UserName + " | Id: " + user.Id + " | Posted: " + user.LastPostDate.ToString());
+								Logger.WriteDebug("Kicking inactive user: " + user.UserName + " | Id: " + user.Id + " | Posted: " + user.LastPostDate.ToString());								
 								//user.KickReason = "Inactive";
 								//user.KickDate = DateTime.Now;
 								//_isUserDictionaryChanged = true;
-
-
-								// TODO: Implement kicking user
+								//KickUser(user, "User still inactive after inactivity warning");
 							}
 						}
 						else 
 						{
 							// Reset values if user spoke/rejoined
 							if(user.WarnedDate != DateTime.MinValue)
-							{
+							{								
+								Logger.WriteDebug("Resetting warned date for user: " + user.UserName);
 								user.WarnedDate = DateTime.MinValue;
+								_isUserDictionaryChanged = true;
+								//SendDmToUser(user, "Hi. This is Atom Bot from Nerva server again. Thank you for choosing to stay with us!");
 							}
 
 							if(user.KickDate != DateTime.MinValue)
 							{
+								
+								Logger.WriteDebug("Resetting kick date for user: " + user.UserName);
 								user.KickDate = DateTime.MinValue;
+								_isUserDictionaryChanged = true;
 							}
 						}
 					}
 					else if(isUnverified)
 					{
-						// Kick unverified user if not verified within 3 days
-						if(user.JoinedDate.AddDays(3) < DateTime.Now)
+						// Kick unverified user if not verified within 24 hours
+						if(user.JoinedDate.AddDays(1) < DateTime.Now)
 						{
-							Logger.WriteDebug("Kicking unverified user: " + user.UserName + " | Id: " + user.Id + " | Joined: " + user.JoinedDate.ToString());
+							Logger.WriteDebug("Kicking unverified user: " + user.UserName + " | Id: " + user.Id + " | Joined: " + user.JoinedDate.ToString());							
 							//user.KickReason = "Unverified";
 							//user.KickDate = DateTime.Now;
 							//_isUserDictionaryChanged = true;
-
-
-							// TODO: Implement kicking user
+							//KickUser(user, "User did not verify within 24 hours");
 						}
 					}
 					else 
@@ -419,6 +418,43 @@ namespace Nerva.Bots
 			catch (Exception ex)
 			{
 				Logger.HandleException(ex, "KickProcess: ");
+			}
+		}
+
+		private void KickUser(DiscordUser userToKick, string reason)
+		{
+			try
+			{
+				IGuild guild = Globals.Client.GetGuild(Globals.Bot.Config.ServerId);
+				var guildUser = guild.GetUserAsync(userToKick.Id).Result;
+				guildUser.KickAsync(reason);
+			}
+			catch (Exception ex)
+			{
+				Logger.HandleException(ex, "KickUser: ");
+			}
+		}
+
+		private void SendDmToUser(DiscordUser discordUser, string message)
+		{
+			try
+			{
+				IGuild guild = Globals.Client.GetGuild(Globals.Bot.Config.ServerId);
+				var guildUser = guild.GetUserAsync(discordUser.Id).Result;
+				try
+				{
+					guildUser.SendMessageAsync(message);
+				}
+				catch (Discord.Net.HttpException discordEx)
+				{
+					// This method will throw an Discord.Net.HttpException if the user cannot receive DMs due to privacy reasons or if the user has the sender blocked
+					// You may want to consider catching for Discord.Net.HttpException.DiscordCode 50007 when using this method.
+					Logger.HandleException(discordEx, "SendDmToUser Discord Ex: ");
+				}				
+			}
+			catch (Exception ex)
+			{
+				Logger.HandleException(ex, "SendDmToUser: ");
 			}
 		}
 

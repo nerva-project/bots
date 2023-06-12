@@ -16,7 +16,6 @@ using Nerva.Bots.Helpers;
 using Nerva.Bots.Classes;
 using System.Timers;
 using System.Text.Json;
-using System.Threading;
 
 namespace Nerva.Bots
 {
@@ -368,7 +367,7 @@ namespace Nerva.Bots
 								SendDmToUser(user, "Hi. This is your friendly Atom Bot from Nerva server. You have not posted anything since: " + user.LastPostDate.ToShortDateString() + ". If you'd like to stay, please post something intelligent within 3 days in one of non-archived channels or I will remove you.");
 
 								// Don't go too fast
-								Thread.Sleep(1000);
+								System.Threading.Thread.Sleep(1000);
 							}
 							else if(user.KickDate == DateTime.MinValue && user.WarnedDate.AddDays(3) < DateTime.Now)
 							{
@@ -380,7 +379,7 @@ namespace Nerva.Bots
 								KickUser(user, "User still inactive after inactivity warning");
 
 								// Don't go too fast
-								Thread.Sleep(1000);
+								System.Threading.Thread.Sleep(1000);
 							}
 						}
 						else 
@@ -394,7 +393,7 @@ namespace Nerva.Bots
 								SendDmToUser(user, "Hi. This is Atom Bot from Nerva server again. Your post has been noted. Thank you for choosing to stay with us!");
 
 								// Don't go too fast
-								Thread.Sleep(1000);
+								System.Threading.Thread.Sleep(1000);
 							}
 
 							if(user.KickDate != DateTime.MinValue)
@@ -417,7 +416,7 @@ namespace Nerva.Bots
 							KickUser(user, "User did not verify within 24 hours");
 
 							// Don't go too fast
-							Thread.Sleep(1000);
+							System.Threading.Thread.Sleep(1000);
 						}
 					}
 					else 

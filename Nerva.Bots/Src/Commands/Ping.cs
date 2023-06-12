@@ -12,7 +12,7 @@ namespace Nerva.Bots.Commands
         {
             try
             {
-                DiscordResponse.Reply(msg, text: "Pong!");
+                DiscordResponse.Reply(msg, text: "Pong took " + Globals.Client.Latency + " ms");
             }
             catch(Exception ex)
             {

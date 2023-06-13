@@ -2,6 +2,7 @@ using System;
 using Discord;
 using Discord.WebSocket;
 using Nerva.Bots;
+using Nerva.Bots.Classes;
 using Nerva.Bots.Plugin;
 using Nerva.Rpc;
 using Nerva.Rpc.Wallet;

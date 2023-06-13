@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Nerva.Bots.Classes;
 using AngryWasp.Helpers;
 using Discord;
 using Discord.WebSocket;

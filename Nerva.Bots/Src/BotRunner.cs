@@ -27,8 +27,7 @@ namespace Nerva.Bots
 		private Timer _keepAliveTimer;
 		private int _reconnectCount = 0;
 		private DateTime _lastReconnectAttempt = DateTime.MinValue;
-
-		private IDictionary<ulong, DiscordUser> _discordUsers = new Dictionary<ulong, DiscordUser>();
+		
 		private string _discordUserFile = Path.Combine(Environment.CurrentDirectory, "DiscordUsers.json");
 		private bool _isUserDictionaryChanged = false;
 		private DateTime _userDictionarySavedTime = DateTime.Now;
@@ -222,7 +221,7 @@ namespace Nerva.Bots
 				if(Globals.BotAssembly.GetName().Name.ToLower().Contains("atom"))
 				{
 					// Only want to run this as Atom
-					if(_lastReconnectAttempt.AddMinutes(1) < DateTime.Now && _discordUsers.Count == 0)
+					if(_lastReconnectAttempt.AddMinutes(1) < DateTime.Now && Globals.DiscordUsers.Count == 0)
 					{
 						// This should run once shortly after bot starts
 						LoadDiscordUsers();
@@ -284,7 +283,11 @@ namespace Nerva.Bots
 
 					if(_verificationRegex.IsMatch(message.Content.ToLower()))
 					{
-						VerifyUser(msg);
+						// Try this way for now
+						Task.Run(() => {
+							((ICommand)Activator.CreateInstance(Globals.Commands["!DiscordVerify"])).Process(msg);
+						});
+
 						return;
 					}
 				}
@@ -318,7 +321,7 @@ namespace Nerva.Bots
 				// Need to sync roles or it will not know if user roles changed through Discord
 				SyncRolesWithDiscord();
 
-				foreach(DiscordUser user in _discordUsers.Values)
+				foreach(DiscordUser user in Globals.DiscordUsers.Values)
 				{
 					bool isUnverified = false;
 					bool isVerified = false;
@@ -421,8 +424,8 @@ namespace Nerva.Bots
 					}
 					else 
 					{
-						// Why are you here?
-						Logger.WriteDebug("KickProcess: Else, User: " + user.UserName + " | Id: " + user.Id);
+						// No role, or at least no Verified or Unverified
+						//Logger.WriteDebug("KickProcess: Else, User: " + user.UserName + " | Id: " + user.Id);
 					}
 				}
 			}
@@ -469,134 +472,28 @@ namespace Nerva.Bots
 			}
 		}
 
-		private void AddUserToDictionary(IUser user)
-		{
-			try
-			{
-				if(!_discordUsers.ContainsKey(user.Id))
-				{
-					SocketGuildUser socketUser = (SocketGuildUser)user;
-					IEnumerable<SocketRole> userRoles = socketUser.Roles;
-
-					// Add new user to dictionary
-					DiscordUser newUser = new DiscordUser();
-					newUser.Id = user.Id;
-					newUser.UserName = user.Username;
-					newUser.Discriminator = user.Discriminator;
-					// JoinedDate will be inaccurate for some calls to this methods as it will be Discord joined date.
-					// For now, this will be set in SyncRolesWithDiscord()
-					//newUser.JoinedDate = user.CreatedAt.DateTime;
-
-					newUser.Roles = new List<ulong>();
-					foreach(SocketRole role in userRoles)
-					{
-						newUser.Roles.Add(role.Id);
-					}
-
-					_discordUsers.Add(user.Id, newUser);
-				}
-			}
-			catch (Exception ex)
-			{
-				Logger.HandleException(ex, "AddUserToDictionary: ");
-			}
-		}
+		
 
 		private void UpdateUserActivity(SocketUserMessage message)
 		{
-			if(_discordUsers != null && _discordUsers.Count > 0 && message.Author != null && !message.Author.IsBot)
+			if(Globals.DiscordUsers != null && Globals.DiscordUsers.Count > 0 && message.Author != null && !message.Author.IsBot)
 			{
-				if(!_discordUsers.ContainsKey(message.Author.Id))
+				if(!Globals.DiscordUsers.ContainsKey(message.Author.Id))
 				{
-					AddUserToDictionary(message.Author);
+					Globals.AddUserToDictionary(message.Author);
 					Logger.WriteDebug("UpdateUserActivity added new user to dictionary: " + message.Author.Username);
 				}
 
-				if(_discordUsers.ContainsKey(message.Author.Id) && _discordUsers[message.Author.Id].LastPostDate < message.CreatedAt.DateTime)
+				if(Globals.DiscordUsers.ContainsKey(message.Author.Id) && Globals.DiscordUsers[message.Author.Id].LastPostDate < message.CreatedAt.DateTime)
 				{
 					Logger.WriteDebug("Updating last post date for User: " + message.Author.Username + " to: " + message.CreatedAt.DateTime.ToString());
-					_discordUsers[message.Author.Id].LastPostDate = message.CreatedAt.DateTime;
+					Globals.DiscordUsers[message.Author.Id].LastPostDate = message.CreatedAt.DateTime;
 
 					// This way we know that we need to save to file but don't want to do it after every message
 					_isUserDictionaryChanged = true;
 				}
 			}
-		}
-
-		private void VerifyUser(SocketUserMessage message)
-		{
-			try
-			{
-				if(_discordUsers != null && _discordUsers.Count > 0 && message.Author != null && !message.Author.IsBot)
-				{
-					if(!_discordUsers.ContainsKey(message.Author.Id))
-					{
-						AddUserToDictionary(message.Author);						
-						Logger.WriteDebug("VerifyUser added new user to dictionary: " + message.Author.Username);
-					}
-					
-					if(_discordUsers.ContainsKey(message.Author.Id))
-					{
-						bool isUserVerified = false;
-						bool isUserUnverified = false;
-
-						// First make sure that user not yet verified
-						foreach(ulong roleId in _discordUsers[message.Author.Id].Roles)
-						{
-							if(roleId == Constants.UNVERIFIED_USER_ROLE_ID)
-							{							
-								isUserUnverified = true;
-							}
-							else if(roleId == Constants.VERIFIED_USER_ROLE_ID)
-							{
-								isUserVerified = true;
-							}
-						}
-
-						if(!isUserVerified && isUserUnverified)
-						{
-							// Only run this if user has Unverified Role and does not have Verified Role
-							IGuild guild = Globals.Client.GetGuild(Globals.Bot.Config.ServerId);
-							var unverifiedRole = guild.GetRole(Constants.UNVERIFIED_USER_ROLE_ID);
-							var verifiedRole = guild.GetRole(Constants.VERIFIED_USER_ROLE_ID);
-
-							var user = guild.GetUserAsync(message.Author.Id).Result;
-
-							SocketGuildUser socketGuildUser = user as SocketGuildUser;
-
-							if (socketGuildUser == null)
-							{
-								return;
-							}
-
-							socketGuildUser.RemoveRoleAsync(unverifiedRole).Wait();
-							_discordUsers[message.Author.Id].Roles.Remove(unverifiedRole.Id);
-
-							socketGuildUser.AddRoleAsync(verifiedRole).Wait();
-							_discordUsers[message.Author.Id].Roles.Add(verifiedRole.Id);
-
-							if(!string.IsNullOrEmpty(_discordUsers[message.Author.Id].KickReason))
-							{
-								// This will only work if user was kicked previously. It's OK for now
-								// TODO: Try to come up with a better way to handle this
-								DiscordResponse.Reply(message, text: "Welcome back @" + message.Author.Username + "#" + message.Author.Discriminator + ". You're now verified.");
-								Logger.WriteDebug("VerifyUser welcomed back returning user: " + message.Author.Username);
-							}
-							else
-							{
-								// Assume brand new user
-								DiscordResponse.Reply(message, text: "/welcome @" + message.Author.Username + "#" + message.Author.Discriminator);
-								Logger.WriteDebug("VerifyUser welcomed new user: " + message.Author.Username);
-							}
-						}
-					}					
-				}
-			}
-			catch (Exception ex)
-			{
-				Logger.HandleException(ex, "VerifyUser: ");
-			}
-		}
+		}		
 
 		private void LoadDiscordUsers()
 		{
@@ -607,10 +504,10 @@ namespace Nerva.Bots
 				if(File.Exists(_discordUserFile))
 				{
 					// Load Discord users from storage to object in memory	
-					_discordUsers = JsonSerializer.Deserialize<Dictionary<ulong, DiscordUser>>(File.ReadAllText(_discordUserFile));
-					Logger.WriteDebug("Users loaded from file. Count: " + _discordUsers.Count);
+					Globals.DiscordUsers = JsonSerializer.Deserialize<Dictionary<ulong, DiscordUser>>(File.ReadAllText(_discordUserFile));
+					Logger.WriteDebug("Users loaded from file. Count: " + Globals.DiscordUsers.Count);
 
-					if(_discordUsers.Count > 0)
+					if(Globals.DiscordUsers.Count > 0)
 					{
 						// Refresh users as we don't know why or for how long bot has been down
 						GetUserActivityFromDiscord(100);
@@ -630,19 +527,19 @@ namespace Nerva.Bots
 
 						if(!socketUser.IsBot)
 						{
-							if(!_discordUsers.ContainsKey(socketUser.Id))
+							if(!Globals.DiscordUsers.ContainsKey(socketUser.Id))
 							{
-								AddUserToDictionary(socketUser);								
+								Globals.AddUserToDictionary(socketUser);								
 							}
 						}
 					
 						//Logger.WriteDebug("User Name: " + socketUser.Username + " | Discriminator: " + socketUser.Discriminator + " | Id: " + socketUser.Id + " | Joined: " + socketUser.JoinedAt.ToString() + " | IsBot: " + socketUser.IsBot + " | Roles: " + stringRoles);					
 					}
 
-					Logger.WriteDebug("Users loaded from Discord. Count: " + _discordUsers.Count);
+					Logger.WriteDebug("Users loaded from Discord. Count: " + Globals.DiscordUsers.Count);
 
 					// Initial user pull from Disord so get many messages
-					if(_discordUsers.Count > 0)
+					if(Globals.DiscordUsers.Count > 0)
 					{
 						GetUserActivityFromDiscord(5000);
 					}
@@ -681,12 +578,12 @@ namespace Nerva.Bots
 						await foreach(var message in messages)
 						{
 							//await Logger.WriteDebug("Message Id: " + message.Id + " | Author Id: " + message.Author.Id + " | Author UserName: " + message.Author.Username);
-							if(_discordUsers.ContainsKey(message.Author.Id))
+							if(Globals.DiscordUsers.ContainsKey(message.Author.Id))
 							{
-								if(message.CreatedAt.DateTime > _discordUsers[message.Author.Id].LastPostDate)
+								if(message.CreatedAt.DateTime > Globals.DiscordUsers[message.Author.Id].LastPostDate)
 								{
 									await Logger.WriteDebug("Updating Last Post Date for User Id: " + message.Author.Id + " | UserName: " + message.Author.Username + " | Posted: " + message.CreatedAt.DateTime.ToString());
-									_discordUsers[message.Author.Id].LastPostDate = message.CreatedAt.DateTime;
+									Globals.DiscordUsers[message.Author.Id].LastPostDate = message.CreatedAt.DateTime;
 								}
 							}
 							//else 
@@ -720,7 +617,7 @@ namespace Nerva.Bots
 				SocketRole roleUnverified = guild.GetRole(Constants.UNVERIFIED_USER_ROLE_ID);
 				SocketRole roleVerified = guild.GetRole(Constants.VERIFIED_USER_ROLE_ID);
 
-				foreach(DiscordUser dictionaryUser in _discordUsers.Values)
+				foreach(DiscordUser dictionaryUser in Globals.DiscordUsers.Values)
 				{
 					// Update user JoinedDate if different in Discord
 					foreach(SocketGuildUser socketGuildUser in roleUnverified.Members)
@@ -830,10 +727,10 @@ namespace Nerva.Bots
 		{
 			try
 			{
-				if(_discordUsers != null && _discordUsers.Count > 0)
+				if(Globals.DiscordUsers != null && Globals.DiscordUsers.Count > 0)
 				{						
-					File.WriteAllText(_discordUserFile, JsonSerializer.Serialize(_discordUsers));
-					Logger.WriteDebug("User Dictionary saved to file. Record count: " + _discordUsers.Count);
+					File.WriteAllText(_discordUserFile, JsonSerializer.Serialize(Globals.DiscordUsers));
+					Logger.WriteDebug("User Dictionary saved to file. Record count: " + Globals.DiscordUsers.Count);
 				}
 			}
 			catch (Exception ex)
@@ -841,21 +738,5 @@ namespace Nerva.Bots
 				Logger.HandleException(ex, "SaveUserDictionaryToFile: ");
 			}
 		}
-    }
-
-
-    public static class Globals
-    {
-        public static Assembly BotAssembly { get; set; } = null;
-
-		public static IBot Bot { get; set; } = null;
-
-        public static DiscordSocketClient Client { get; set; }
-
-		public static Nerva.Rpc.Log RpcLogConfig { get; set; } = Nerva.Rpc.Log.Presets.None;
-
-		public static Dictionary<string, string> BotHelp { get; set; } = new Dictionary<string, string>();
-
-		public static Dictionary<string, Type> Commands = new Dictionary<string, Type>();
     }
 }

@@ -2,7 +2,6 @@ using System;
 using Discord.WebSocket;
 using Nerva.Bots.Helpers;
 using Nerva.Bots.Plugin;
-using Newtonsoft.Json;
 
 #pragma warning disable 4014
 

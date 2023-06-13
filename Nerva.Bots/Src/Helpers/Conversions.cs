@@ -1,4 +1,5 @@
 using System;
+using Nerva.Bots.Classes;
 
 namespace Nerva.Bots.Helpers
 {

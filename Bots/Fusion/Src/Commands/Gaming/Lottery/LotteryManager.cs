@@ -6,6 +6,7 @@ using AngryWasp.Helpers;
 using AngryWasp.Serializer;
 using Discord.WebSocket;
 using Nerva.Bots;
+using Nerva.Bots.Classes;
 using Nerva.Rpc;
 using Nerva.Bots.Helpers;
 

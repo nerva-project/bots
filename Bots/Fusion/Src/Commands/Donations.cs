@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using Discord;
 using Discord.WebSocket;
-using Nerva.Bots;
+using Nerva.Bots.Classes;
 using Nerva.Bots.Helpers;
 using Nerva.Bots.Plugin;
 using Nerva.Rpc.Wallet;

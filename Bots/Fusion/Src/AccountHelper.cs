@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Discord.WebSocket;
 using Nerva.Bots;
+using Nerva.Bots.Classes;
 using Nerva.Rpc;
 using Nerva.Rpc.Wallet;
 using System.Linq;

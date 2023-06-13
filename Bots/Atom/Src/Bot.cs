@@ -5,6 +5,7 @@ using AngryWasp.Cli.Args;
 using AngryWasp.Helpers;
 using DnsClient;
 using Nerva.Bots;
+using Nerva.Bots.Classes;
 using Nerva.Bots.Plugin;
 
 namespace Atom

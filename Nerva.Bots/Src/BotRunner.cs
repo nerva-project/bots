@@ -29,7 +29,6 @@ namespace Nerva.Bots
 		private DateTime _lastReconnectAttempt = DateTime.MinValue;
 		
 		private string _discordUserFile = Path.Combine(Environment.CurrentDirectory, "DiscordUsers.json");
-		private bool _isUserDictionaryChanged = false;
 		private DateTime _userDictionarySavedTime = DateTime.Now;
 		private DateTime _lastKickProcessTime = DateTime.Now;
 
@@ -234,11 +233,11 @@ namespace Nerva.Bots
 						_lastKickProcessTime = DateTime.Now;
 					}
 
-					if(_userDictionarySavedTime.AddMinutes(10) < DateTime.Now && _isUserDictionaryChanged)
+					if(_userDictionarySavedTime.AddMinutes(10) < DateTime.Now && Globals.IsUserDictionaryChanged)
 					{
 						// Save every 10 minutes and only if there were updates
 						_userDictionarySavedTime = DateTime.Now;
-						_isUserDictionaryChanged = false;
+						Globals.IsUserDictionaryChanged = false;
 						SaveUserDictionaryToFile();
 					}
 				}
@@ -318,8 +317,11 @@ namespace Nerva.Bots
 		{
 			try
 			{
+				// Need to add new users
+				Globals.SyncUsersFromDiscord();
+				
 				// Need to sync roles or it will not know if user roles changed through Discord
-				SyncRolesWithDiscord();
+				Globals.SyncRolesFromDiscord();
 
 				foreach(DiscordUser user in Globals.DiscordUsers.Values)
 				{
@@ -366,7 +368,7 @@ namespace Nerva.Bots
 								// User has not been warned yet so warn them
 								Logger.WriteDebug("KickProcess: Warning inactive user: " + user.UserName + " | Id: " + user.Id + " | Last posted: " + user.LastPostDate.ToString());								
 								user.WarnedDate = DateTime.Now;
-								_isUserDictionaryChanged = true;
+								Globals.IsUserDictionaryChanged = true;
 								SendDmToUser(user, "Hi. This is your friendly Atom Bot from Nerva server. You have not posted anything since: " + user.LastPostDate.ToShortDateString() + ". If you'd like to stay, please post something intelligent within 3 days in one of non-archived channels or I will remove you.");
 
 								// Don't go too fast
@@ -378,7 +380,7 @@ namespace Nerva.Bots
 								Logger.WriteDebug("KickProcess: Kicking inactive user: " + user.UserName + " | Id: " + user.Id + " | Last posted: " + user.LastPostDate.ToString());								
 								user.KickReason = "Inactive";
 								user.KickDate = DateTime.Now;
-								_isUserDictionaryChanged = true;
+								Globals.IsUserDictionaryChanged = true;
 								KickUser(user, "User still inactive after inactivity warning");
 
 								// Don't go too fast
@@ -392,7 +394,7 @@ namespace Nerva.Bots
 							{								
 								Logger.WriteDebug("KickProcess: Resetting warned date for user: " + user.UserName);
 								user.WarnedDate = DateTime.MinValue;
-								_isUserDictionaryChanged = true;
+								Globals.IsUserDictionaryChanged = true;
 								SendDmToUser(user, "Hi. This is Atom Bot from Nerva server again. Your post has been noted. Thank you for choosing to stay with us!");
 
 								// Don't go too fast
@@ -403,7 +405,7 @@ namespace Nerva.Bots
 							{
 								Logger.WriteDebug("KickProcess: Resetting kick date for user: " + user.UserName);
 								user.KickDate = DateTime.MinValue;
-								_isUserDictionaryChanged = true;
+								Globals.IsUserDictionaryChanged = true;
 							}
 						}
 					}
@@ -415,7 +417,7 @@ namespace Nerva.Bots
 							Logger.WriteDebug("KickProcess: Kicking unverified user: " + user.UserName + " | Id: " + user.Id + " | Joined: " + user.JoinedDate.ToString());							
 							user.KickReason = "Unverified";
 							user.KickDate = DateTime.Now;
-							_isUserDictionaryChanged = true;
+							Globals.IsUserDictionaryChanged = true;
 							KickUser(user, "User did not verify within 24 hours");
 
 							// Don't go too fast
@@ -490,7 +492,7 @@ namespace Nerva.Bots
 					Globals.DiscordUsers[message.Author.Id].LastPostDate = message.CreatedAt.DateTime;
 
 					// This way we know that we need to save to file but don't want to do it after every message
-					_isUserDictionaryChanged = true;
+					Globals.IsUserDictionaryChanged = true;
 				}
 			}
 		}		
@@ -516,25 +518,7 @@ namespace Nerva.Bots
 				else
 				{
 					// No user file found so get users from Discord
-					IGuild guild = Globals.Client.GetGuild(Globals.Bot.Config.ServerId);
-					var users = guild.GetUsersAsync(CacheMode.AllowDownload).Result;
-					
-					// Loop through users and load them to user object
-					foreach (var user in users)
-					{
-						SocketGuildUser socketUser = (SocketGuildUser)user;
-						IEnumerable<SocketRole> userRoles = socketUser.Roles;
-
-						if(!socketUser.IsBot)
-						{
-							if(!Globals.DiscordUsers.ContainsKey(socketUser.Id))
-							{
-								Globals.AddUserToDictionary(socketUser);								
-							}
-						}
-					
-						//Logger.WriteDebug("User Name: " + socketUser.Username + " | Discriminator: " + socketUser.Discriminator + " | Id: " + socketUser.Id + " | Joined: " + socketUser.JoinedAt.ToString() + " | IsBot: " + socketUser.IsBot + " | Roles: " + stringRoles);					
-					}
+					Globals.SyncUsersFromDiscord();
 
 					Logger.WriteDebug("Users loaded from Discord. Count: " + Globals.DiscordUsers.Count);
 
@@ -606,122 +590,7 @@ namespace Nerva.Bots
 			{
 				await Logger.HandleException(ex, "GetUserActivityFromDiscord: ");
 			}
-		}
-
-		private void SyncRolesWithDiscord()
-		{
-			try
-			{
-				// This will only synchronize Verified and Unverified roles as those are the only ones we need
-				SocketGuild guild = Globals.Client.GetGuild(Globals.Bot.Config.ServerId);
-				SocketRole roleUnverified = guild.GetRole(Constants.UNVERIFIED_USER_ROLE_ID);
-				SocketRole roleVerified = guild.GetRole(Constants.VERIFIED_USER_ROLE_ID);
-
-				foreach(DiscordUser dictionaryUser in Globals.DiscordUsers.Values)
-				{
-					// Update user JoinedDate if different in Discord
-					foreach(SocketGuildUser socketGuildUser in roleUnverified.Members)
-					{
-						if(socketGuildUser.Id == dictionaryUser.Id)
-						{
-							if(dictionaryUser.JoinedDate != socketGuildUser.JoinedAt)
-							{
-								dictionaryUser.JoinedDate = socketGuildUser.JoinedAt.Value.DateTime;
-								Logger.WriteDebug("SyncRolesWithDiscord changed Guild Joined for Unverified User: " + dictionaryUser.UserName + " | New Date: " + dictionaryUser.JoinedDate.ToString());
-							}
-						}
-					}
-
-					// Need to do this for Verified users as well or it might kick them too soon
-					foreach(SocketGuildUser socketGuildUser in roleVerified.Members)
-					{
-						if(socketGuildUser.Id == dictionaryUser.Id)
-						{
-							if(dictionaryUser.JoinedDate != socketGuildUser.JoinedAt)
-							{
-								dictionaryUser.JoinedDate = socketGuildUser.JoinedAt.Value.DateTime;
-								Logger.WriteDebug("SyncRolesWithDiscord changed Guild Joined for Verified User: " + dictionaryUser.UserName + " | New Date: " + dictionaryUser.JoinedDate.ToString());
-							}
-						}
-					}
-
-
-					bool userUnverifiedInDiscord = false;
-					bool userVerifiedInDiscord = false;
-
-					// Check if user has Unverified role in Discord
-					foreach(SocketGuildUser socketUser in roleUnverified.Members)
-					{
-						if(socketUser.Id == dictionaryUser.Id)
-						{
-							userUnverifiedInDiscord = true;
-						}
-					}
-
-					// Check if user has Verified role in Discord
-					foreach(SocketGuildUser socketUser in roleVerified.Members)
-					{
-						if(socketUser.Id == dictionaryUser.Id)
-						{
-							userVerifiedInDiscord = true;
-						}
-					}
-
-
-					// Synchronize "Unverified" role
-					if(userUnverifiedInDiscord)
-					{
-						// User has "Unverified" role in Discord
-						if(!dictionaryUser.Roles.Contains(roleUnverified.Id))
-						{
-							// But does not have "Unverified" role in Dictionary. Add role
-							dictionaryUser.Roles.Add(roleUnverified.Id);
-							if(!_isUserDictionaryChanged) _isUserDictionaryChanged = true;
-							Logger.WriteDebug("SyncRolesWithDiscord added Unverified role to User: " + dictionaryUser.UserName);
-						}
-					}
-					else 
-					{
-						// User does not have "Unverified" role in Discord
-						if(dictionaryUser.Roles.Contains(roleUnverified.Id))
-						{
-							// But "Unverified" in dictionary. Remove role
-							dictionaryUser.Roles.Remove(roleUnverified.Id);
-							if(!_isUserDictionaryChanged) _isUserDictionaryChanged = true;
-							Logger.WriteDebug("SyncRolesWithDiscord removed Unverified role from User: " + dictionaryUser.UserName);
-						}
-					}
-
-					// Synchronize "Verified" role
-					if(userVerifiedInDiscord)
-					{
-						// User has "Verified" role in Discord
-						if(!dictionaryUser.Roles.Contains(roleVerified.Id))
-						{
-							// But does not have "Verified" role in Dictionary. Add role
-							dictionaryUser.Roles.Add(roleVerified.Id);
-							if(!_isUserDictionaryChanged) _isUserDictionaryChanged = true;
-							Logger.WriteDebug("SyncRolesWithDiscord added Verified role to User: " + dictionaryUser.UserName);
-						}
-					}
-					else 
-					{
-						// User does not have "Verified" role in Discord
-						if(dictionaryUser.Roles.Contains(roleVerified.Id))
-						{
-							// But has "Verified" in dictionary. Remove role
-							dictionaryUser.Roles.Remove(roleVerified.Id);
-							if(!_isUserDictionaryChanged) _isUserDictionaryChanged = true;
-							Logger.WriteDebug("SyncRolesWithDiscord removed Verified role from User: " + dictionaryUser.UserName);
-						}
-					}
-				}
-			}
-			catch (Exception ex)
-			{
-				Logger.HandleException(ex, "SyncRolesWithDiscord: ");
-			}	
-		}
+		}		
 
 		private void SaveUserDictionaryToFile()
 		{

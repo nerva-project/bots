@@ -23,7 +23,37 @@ namespace Nerva.Bots.Classes
 		public static Dictionary<string, Type> Commands = new Dictionary<string, Type>();
 
 		public static IDictionary<ulong, DiscordUser> DiscordUsers = new Dictionary<ulong, DiscordUser>();
+        public static bool IsUserDictionaryChanged = false;
 
+        public static void SyncUsersFromDiscord()
+        {
+            try
+            {
+                IGuild guild = Globals.Client.GetGuild(Globals.Bot.Config.ServerId);
+                var users = guild.GetUsersAsync(CacheMode.AllowDownload).Result;
+                
+                // Loop through users and load them to user object
+                foreach (var user in users)
+                {
+                    SocketGuildUser socketUser = (SocketGuildUser)user;
+                    IEnumerable<SocketRole> userRoles = socketUser.Roles;
+
+                    if(!socketUser.IsBot)
+                    {
+                        if(!Globals.DiscordUsers.ContainsKey(socketUser.Id))
+                        {
+                            Globals.AddUserToDictionary(socketUser);								
+                        }
+                    }
+                
+                    //Logger.WriteDebug("User Name: " + socketUser.Username + " | Discriminator: " + socketUser.Discriminator + " | Id: " + socketUser.Id + " | Joined: " + socketUser.JoinedAt.ToString() + " | IsBot: " + socketUser.IsBot + " | Roles: " + stringRoles);					
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.HandleException(ex, "SynchUsersFromDiscord: ");
+            }
+        }
         public static void AddUserToDictionary(IUser user)
 		{
 			try
@@ -55,6 +85,121 @@ namespace Nerva.Bots.Classes
 			{
 				Logger.HandleException(ex, "AddUserToDictionary: ");
 			}
+		}
+
+        public static void SyncRolesFromDiscord()
+		{
+			try
+			{
+				// This will only synchronize Verified and Unverified roles as those are the only ones we need
+				SocketGuild guild = Globals.Client.GetGuild(Globals.Bot.Config.ServerId);
+				SocketRole roleUnverified = guild.GetRole(Constants.UNVERIFIED_USER_ROLE_ID);
+				SocketRole roleVerified = guild.GetRole(Constants.VERIFIED_USER_ROLE_ID);
+
+				foreach(DiscordUser dictionaryUser in Globals.DiscordUsers.Values)
+				{
+					// Update user JoinedDate if different in Discord
+					foreach(SocketGuildUser socketGuildUser in roleUnverified.Members)
+					{
+						if(socketGuildUser.Id == dictionaryUser.Id)
+						{
+							if(dictionaryUser.JoinedDate != socketGuildUser.JoinedAt)
+							{
+								dictionaryUser.JoinedDate = socketGuildUser.JoinedAt.Value.DateTime;
+								Logger.WriteDebug("SyncRolesWithDiscord changed Guild Joined for Unverified User: " + dictionaryUser.UserName + " | New Date: " + dictionaryUser.JoinedDate.ToString());
+							}
+						}
+					}
+
+					// Need to do this for Verified users as well or it might kick them too soon
+					foreach(SocketGuildUser socketGuildUser in roleVerified.Members)
+					{
+						if(socketGuildUser.Id == dictionaryUser.Id)
+						{
+							if(dictionaryUser.JoinedDate != socketGuildUser.JoinedAt)
+							{
+								dictionaryUser.JoinedDate = socketGuildUser.JoinedAt.Value.DateTime;
+								Logger.WriteDebug("SyncRolesWithDiscord changed Guild Joined for Verified User: " + dictionaryUser.UserName + " | New Date: " + dictionaryUser.JoinedDate.ToString());
+							}
+						}
+					}
+
+
+					bool userUnverifiedInDiscord = false;
+					bool userVerifiedInDiscord = false;
+
+					// Check if user has Unverified role in Discord
+					foreach(SocketGuildUser socketUser in roleUnverified.Members)
+					{
+						if(socketUser.Id == dictionaryUser.Id)
+						{
+							userUnverifiedInDiscord = true;
+						}
+					}
+
+					// Check if user has Verified role in Discord
+					foreach(SocketGuildUser socketUser in roleVerified.Members)
+					{
+						if(socketUser.Id == dictionaryUser.Id)
+						{
+							userVerifiedInDiscord = true;
+						}
+					}
+
+
+					// Synchronize "Unverified" role
+					if(userUnverifiedInDiscord)
+					{
+						// User has "Unverified" role in Discord
+						if(!dictionaryUser.Roles.Contains(roleUnverified.Id))
+						{
+							// But does not have "Unverified" role in Dictionary. Add role
+							dictionaryUser.Roles.Add(roleUnverified.Id);
+							if(!IsUserDictionaryChanged) IsUserDictionaryChanged = true;
+							Logger.WriteDebug("SyncRolesWithDiscord added Unverified role to User: " + dictionaryUser.UserName);
+						}
+					}
+					else 
+					{
+						// User does not have "Unverified" role in Discord
+						if(dictionaryUser.Roles.Contains(roleUnverified.Id))
+						{
+							// But "Unverified" in dictionary. Remove role
+							dictionaryUser.Roles.Remove(roleUnverified.Id);
+							if(!IsUserDictionaryChanged) IsUserDictionaryChanged = true;
+							Logger.WriteDebug("SyncRolesWithDiscord removed Unverified role from User: " + dictionaryUser.UserName);
+						}
+					}
+
+					// Synchronize "Verified" role
+					if(userVerifiedInDiscord)
+					{
+						// User has "Verified" role in Discord
+						if(!dictionaryUser.Roles.Contains(roleVerified.Id))
+						{
+							// But does not have "Verified" role in Dictionary. Add role
+							dictionaryUser.Roles.Add(roleVerified.Id);
+							if(!IsUserDictionaryChanged) IsUserDictionaryChanged = true;
+							Logger.WriteDebug("SyncRolesWithDiscord added Verified role to User: " + dictionaryUser.UserName);
+						}
+					}
+					else 
+					{
+						// User does not have "Verified" role in Discord
+						if(dictionaryUser.Roles.Contains(roleVerified.Id))
+						{
+							// But has "Verified" in dictionary. Remove role
+							dictionaryUser.Roles.Remove(roleVerified.Id);
+							if(!IsUserDictionaryChanged) IsUserDictionaryChanged = true;
+							Logger.WriteDebug("SyncRolesWithDiscord removed Verified role from User: " + dictionaryUser.UserName);
+						}
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.HandleException(ex, "SyncRolesWithDiscord: ");
+			}	
 		}
     }
 }

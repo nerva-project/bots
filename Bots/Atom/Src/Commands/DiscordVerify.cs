@@ -58,13 +58,13 @@ namespace Atom.Commands
                                     return;
                                 }
 
-                                socketGuildUser.RemoveRoleAsync(unverifiedRole).Wait();
-                                Globals.DiscordUsers[msg.Author.Id].Roles.Remove(unverifiedRole.Id);
-                                Logger.WriteDebug("DiscordVerify removed Unverified from User: " + msg.Author.Username);
-
                                 socketGuildUser.AddRoleAsync(verifiedRole).Wait();
                                 Globals.DiscordUsers[msg.Author.Id].Roles.Add(verifiedRole.Id);
                                 Logger.WriteDebug("DiscordVerify Added Verified to User: " + msg.Author.Username);
+
+                                socketGuildUser.RemoveRoleAsync(unverifiedRole).Wait();
+                                Globals.DiscordUsers[msg.Author.Id].Roles.Remove(unverifiedRole.Id);
+                                Logger.WriteDebug("DiscordVerify removed Unverified from User: " + msg.Author.Username);
 
                                 if(!string.IsNullOrEmpty(Globals.DiscordUsers[msg.Author.Id].KickReason))
                                 {

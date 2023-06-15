@@ -317,6 +317,8 @@ namespace Nerva.Bots
 		{
 			try
 			{
+				Logger.WriteDebug("KickProcess: Starting...");	
+
 				// Need to add new users
 				Globals.SyncUsersFromDiscord();
 				
@@ -422,6 +424,10 @@ namespace Nerva.Bots
 			catch (Exception ex)
 			{
 				Logger.HandleException(ex, "KickProcess: ");
+			}
+			finally
+			{
+				Logger.WriteDebug("KickProcess: Ending...");	
 			}
 		}
 

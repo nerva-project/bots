@@ -71,13 +71,13 @@ namespace Atom.Commands
                             {
                                 // This will only work if user was kicked previously. It's OK for now
                                 // TODO: Try to come up with a better way to handle this
-                                DiscordResponse.Reply(msg, text: "Welcome back <@" + msg.Author.Id + ">. You're now verified.");
+                                DiscordResponse.Reply(msg, text: "Welcome back <@" + msg.Author.Id + ">! You're now verified.");
                                 Logger.WriteDebug("DiscordVerify welcomed back returning user: " + msg.Author.Username);
                             }
                             else
                             {
                                 // Assume brand new user
-                                DiscordResponse.Reply(msg, text: "/welcome <@" + msg.Author.Id + ">");
+                                DiscordResponse.Reply(msg, text: "Welcome <@" + msg.Author.Id + ">! You're now verified. Here is your first XNV: $tip 1.00. See <#466873635638870016> channel for help with funds.");
                                 Logger.WriteDebug("DiscordVerify welcomed new user: " + msg.Author.Username);
                             }
                         }

@@ -109,7 +109,8 @@ namespace Atom
         {
             Globals.Client.UserJoined += (u) =>
             {
-                Sender.SendPrivateMessage(u, "Reply to this message with `!verify` to unlock the Nerva server. Or not...");
+                // Old verification using !verify through DM. Do not use
+                //Sender.SendPrivateMessage(u, "Reply to this message with `!verify` to unlock the Nerva server. Or not...");
                 return Task.CompletedTask;
             };
             return Task.CompletedTask;

@@ -290,10 +290,7 @@ namespace Nerva.Bots
 
 				if(isVerifyUser)
 				{
-						// Try this way for now
-						Task.Run(() => {
-							((ICommand)Activator.CreateInstance(Globals.Commands["!DiscordVerify"])).Process(msg);
-						});
+					((ICommand)Globals.Commands["!DiscordVerify"]).Process(msg);
 				}
 				else
 				{

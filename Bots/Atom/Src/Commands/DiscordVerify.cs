@@ -14,8 +14,6 @@ namespace Atom.Commands
         {
             try
             {
-                Logger.WriteDebug("DiscordVerify starting for User: " + msg.Author.Username);
-
                 if(Globals.DiscordUsers != null && Globals.DiscordUsers.Count > 0 && msg.Author != null && !msg.Author.IsBot)
 				{
                     if(!Globals.DiscordUsers.ContainsKey(msg.Author.Id))
@@ -29,19 +27,16 @@ namespace Atom.Commands
                         bool isUserVerified = false;
                         bool isUserUnverified = false;
 
-                        Logger.WriteDebug("DiscordVerify running verification check for User: " + msg.Author.Username);
                         // First make sure that user not yet verified
                         foreach(ulong roleId in Globals.DiscordUsers[msg.Author.Id].Roles)
                         {
                             if(roleId == Constants.UNVERIFIED_USER_ROLE_ID)
                             {							
                                 isUserUnverified = true;
-                                Logger.WriteDebug("DiscordVerify marked user as Unverified: " + msg.Author.Username);
                             }
                             else if(roleId == Constants.VERIFIED_USER_ROLE_ID)
                             {
                                 isUserVerified = true;
-                                Logger.WriteDebug("DiscordVerify marked user as Verified: " + msg.Author.Username);
                             }
                         }
 
@@ -76,13 +71,13 @@ namespace Atom.Commands
                             {
                                 // This will only work if user was kicked previously. It's OK for now
                                 // TODO: Try to come up with a better way to handle this
-                                DiscordResponse.Reply(msg, text: "Welcome back @" + msg.Author.Username + "#" + msg.Author.Discriminator + ". You're now verified.");
+                                DiscordResponse.Reply(msg, text: "Welcome back <@" + msg.Author.Id + ">. You're now verified.");
                                 Logger.WriteDebug("DiscordVerify welcomed back returning user: " + msg.Author.Username);
                             }
                             else
                             {
                                 // Assume brand new user
-                                DiscordResponse.Reply(msg, text: "/welcome @" + msg.Author.Username + "#" + msg.Author.Discriminator);
+                                DiscordResponse.Reply(msg, text: "/welcome <@" + msg.Author.Id + ">");
                                 Logger.WriteDebug("DiscordVerify welcomed new user: " + msg.Author.Username);
                             }
                         }

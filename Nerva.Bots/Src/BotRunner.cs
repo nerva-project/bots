@@ -32,7 +32,7 @@ namespace Nerva.Bots
 		private DateTime _userDictionarySavedTime = DateTime.Now;
 		private DateTime _lastKickProcessTime = DateTime.Now;
 
-		private Regex _verificationRegex = new Regex(@"i'?m(.{0,20})?(not|no)(.{0,20})?spamm?er");
+		private Regex _verificationRegex = new Regex(@"i'?m?(.{0,10})?(not|no)(.{0,10})?(spamm?er|scamm?er)");
 
 		private const int _keepAliveInterval = 60000;		// 1 minute
         [STAThread]
@@ -290,8 +290,7 @@ namespace Nerva.Bots
 				}
 
 				if(isVerifyUser)
-				{
-					await Logger.WriteDebug("Starting !DiscordVerify for User: " + msg.Author.Username);	
+				{	
 					//((ICommand)Activator.CreateInstance(Globals.Commands["!DiscordVerify"])).Process(msg);
 					Task.Run(() => {
 						((ICommand)Activator.CreateInstance(Globals.Commands["!DiscordVerify"])).Process(msg);

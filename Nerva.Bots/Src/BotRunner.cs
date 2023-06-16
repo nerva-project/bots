@@ -274,6 +274,8 @@ namespace Nerva.Bots
 				if (msg == null)
 					return;
 
+				bool isVerifyUser = false;
+
 				// TODO: $tip will not count or any other Fusion command
 				if(Globals.BotAssembly.GetName().Name.ToLower().Contains("atom"))
 				{
@@ -282,30 +284,35 @@ namespace Nerva.Bots
 
 					if(_verificationRegex.IsMatch(message.Content.ToLower()))
 					{
+						isVerifyUser = true;
+					}
+				}
+
+				if(isVerifyUser)
+				{
 						// Try this way for now
 						Task.Run(() => {
 							((ICommand)Activator.CreateInstance(Globals.Commands["!DiscordVerify"])).Process(msg);
 						});
-
-						return;
-					}
 				}
+				else
+				{
+					Regex pattern = new Regex($@"\{Globals.Bot.Config.CmdPrefix}\w+");
+					var commands = pattern.Matches(msg.Content.ToLower()).Cast<Match>().Select(match => match.Value).ToArray();
 
-				Regex pattern = new Regex($@"\{Globals.Bot.Config.CmdPrefix}\w+");
-				var commands = pattern.Matches(msg.Content.ToLower()).Cast<Match>().Select(match => match.Value).ToArray();
+					if (commands.Length == 0)
+						return;
 
-				if (commands.Length == 0)
-					return;
-
-#pragma warning disable 4014
-				foreach (var c in commands)
-					if (Globals.Commands.ContainsKey(c))
-					{
-						Task.Run(() => {
-							((ICommand)Activator.CreateInstance(Globals.Commands[c])).Process(msg);
-						});
-					}
-#pragma warning restore 4014
+	#pragma warning disable 4014
+					foreach (var c in commands)
+						if (Globals.Commands.ContainsKey(c))
+						{
+							Task.Run(() => {
+								((ICommand)Activator.CreateInstance(Globals.Commands[c])).Process(msg);
+							});
+						}
+	#pragma warning restore 4014
+				}
 			}
 			catch (Exception ex)
 			{

@@ -14,6 +14,8 @@ namespace Atom.Commands
         {
             try
             {
+                Logger.WriteDebug("DiscordVerify starting for User: " + msg.Author.Username);
+
                 if(Globals.DiscordUsers != null && Globals.DiscordUsers.Count > 0 && msg.Author != null && !msg.Author.IsBot)
 				{
                     if(!Globals.DiscordUsers.ContainsKey(msg.Author.Id))
@@ -23,62 +25,65 @@ namespace Atom.Commands
                     }
 
 					if(Globals.DiscordUsers.ContainsKey(msg.Author.Id))
-                    {                
-                        if(Globals.DiscordUsers.ContainsKey(msg.Author.Id))
-                        {
-                            bool isUserVerified = false;
-                            bool isUserUnverified = false;
+                    {
+                        bool isUserVerified = false;
+                        bool isUserUnverified = false;
 
-                            // First make sure that user not yet verified
-                            foreach(ulong roleId in Globals.DiscordUsers[msg.Author.Id].Roles)
+                        Logger.WriteDebug("DiscordVerify running verification check for User: " + msg.Author.Username);
+                        // First make sure that user not yet verified
+                        foreach(ulong roleId in Globals.DiscordUsers[msg.Author.Id].Roles)
+                        {
+                            if(roleId == Constants.UNVERIFIED_USER_ROLE_ID)
+                            {							
+                                isUserUnverified = true;
+                                Logger.WriteDebug("DiscordVerify marked user as Unverified: " + msg.Author.Username);
+                            }
+                            else if(roleId == Constants.VERIFIED_USER_ROLE_ID)
                             {
-                                if(roleId == Constants.UNVERIFIED_USER_ROLE_ID)
-                                {							
-                                    isUserUnverified = true;
-                                }
-                                else if(roleId == Constants.VERIFIED_USER_ROLE_ID)
-                                {
-                                    isUserVerified = true;
-                                }
+                                isUserVerified = true;
+                                Logger.WriteDebug("DiscordVerify marked user as Verified: " + msg.Author.Username);
+                            }
+                        }
+
+                        if(!isUserVerified && isUserUnverified)
+                        {
+                            Logger.WriteDebug("DiscordVerify says that user is Unverified only: " + msg.Author.Username);
+
+                            // Only run this if user has Unverified Role and does not have Verified Role
+                            IGuild guild = Globals.Client.GetGuild(Globals.Bot.Config.ServerId);
+                            var unverifiedRole = guild.GetRole(Constants.UNVERIFIED_USER_ROLE_ID);
+                            var verifiedRole = guild.GetRole(Constants.VERIFIED_USER_ROLE_ID);
+
+                            var user = guild.GetUserAsync(msg.Author.Id).Result;
+
+                            SocketGuildUser socketGuildUser = user as SocketGuildUser;
+
+                            if (socketGuildUser == null)
+                            {
+                                Logger.WriteDebug("DiscordVerify returning because socketGuildUser is null: " + msg.Author.Username);
+                                return;
                             }
 
-                            if(!isUserVerified && isUserUnverified)
+                            socketGuildUser.AddRoleAsync(verifiedRole).Wait();
+                            Globals.DiscordUsers[msg.Author.Id].Roles.Add(verifiedRole.Id);
+                            Logger.WriteDebug("DiscordVerify Added Verified to User: " + msg.Author.Username);
+
+                            socketGuildUser.RemoveRoleAsync(unverifiedRole).Wait();
+                            Globals.DiscordUsers[msg.Author.Id].Roles.Remove(unverifiedRole.Id);
+                            Logger.WriteDebug("DiscordVerify removed Unverified from User: " + msg.Author.Username);
+
+                            if(!string.IsNullOrEmpty(Globals.DiscordUsers[msg.Author.Id].KickReason))
                             {
-                                // Only run this if user has Unverified Role and does not have Verified Role
-                                IGuild guild = Globals.Client.GetGuild(Globals.Bot.Config.ServerId);
-                                var unverifiedRole = guild.GetRole(Constants.UNVERIFIED_USER_ROLE_ID);
-                                var verifiedRole = guild.GetRole(Constants.VERIFIED_USER_ROLE_ID);
-
-                                var user = guild.GetUserAsync(msg.Author.Id).Result;
-
-                                SocketGuildUser socketGuildUser = user as SocketGuildUser;
-
-                                if (socketGuildUser == null)
-                                {
-                                    return;
-                                }
-
-                                socketGuildUser.AddRoleAsync(verifiedRole).Wait();
-                                Globals.DiscordUsers[msg.Author.Id].Roles.Add(verifiedRole.Id);
-                                Logger.WriteDebug("DiscordVerify Added Verified to User: " + msg.Author.Username);
-
-                                socketGuildUser.RemoveRoleAsync(unverifiedRole).Wait();
-                                Globals.DiscordUsers[msg.Author.Id].Roles.Remove(unverifiedRole.Id);
-                                Logger.WriteDebug("DiscordVerify removed Unverified from User: " + msg.Author.Username);
-
-                                if(!string.IsNullOrEmpty(Globals.DiscordUsers[msg.Author.Id].KickReason))
-                                {
-                                    // This will only work if user was kicked previously. It's OK for now
-                                    // TODO: Try to come up with a better way to handle this
-                                    DiscordResponse.Reply(msg, text: "Welcome back @" + msg.Author.Username + "#" + msg.Author.Discriminator + ". You're now verified.");
-                                    Logger.WriteDebug("DiscordVerify welcomed back returning user: " + msg.Author.Username);
-                                }
-                                else
-                                {
-                                    // Assume brand new user
-                                    DiscordResponse.Reply(msg, text: "/welcome @" + msg.Author.Username + "#" + msg.Author.Discriminator);
-                                    Logger.WriteDebug("DiscordVerify welcomed new user: " + msg.Author.Username);
-                                }
+                                // This will only work if user was kicked previously. It's OK for now
+                                // TODO: Try to come up with a better way to handle this
+                                DiscordResponse.Reply(msg, text: "Welcome back @" + msg.Author.Username + "#" + msg.Author.Discriminator + ". You're now verified.");
+                                Logger.WriteDebug("DiscordVerify welcomed back returning user: " + msg.Author.Username);
+                            }
+                            else
+                            {
+                                // Assume brand new user
+                                DiscordResponse.Reply(msg, text: "/welcome @" + msg.Author.Username + "#" + msg.Author.Discriminator);
+                                Logger.WriteDebug("DiscordVerify welcomed new user: " + msg.Author.Username);
                             }
                         }
                     }

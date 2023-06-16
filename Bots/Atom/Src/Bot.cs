@@ -36,7 +36,8 @@ namespace Atom
 		{
 			450660331405049876, // Atom
             466873635638870016, // Fusion
-			687440519059472414  // Mee6
+			687440519059472414, // Mee6
+            715483656197505084  // Welcome
 		};
 
         public List<ulong> ServerAdminRoleIds => new List<ulong>

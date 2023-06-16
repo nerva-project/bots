@@ -285,12 +285,17 @@ namespace Nerva.Bots
 					if(_verificationRegex.IsMatch(message.Content.ToLower()))
 					{
 						isVerifyUser = true;
+						await Logger.WriteDebug("Verification RegEx passed for User: " + msg.Author.Username);	
 					}
 				}
 
 				if(isVerifyUser)
 				{
-					((ICommand)Globals.Commands["!DiscordVerify"]).Process(msg);
+					await Logger.WriteDebug("Starting !DiscordVerify for User: " + msg.Author.Username);	
+					//((ICommand)Activator.CreateInstance(Globals.Commands["!DiscordVerify"])).Process(msg);
+					Task.Run(() => {
+						((ICommand)Activator.CreateInstance(Globals.Commands["!DiscordVerify"])).Process(msg);
+					});
 				}
 				else
 				{

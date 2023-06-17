@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Discord;
 using Discord.WebSocket;
 using Nerva.Bots.Classes;
@@ -20,6 +21,18 @@ namespace Atom.Commands
                     {
                         Globals.AddUserToDictionary(msg.Author);						
                         Logger.WriteDebug("DiscordVerify added new user to dictionary: " + msg.Author.Username);
+                    }
+                    else 
+                    {
+                        // If returning user, will not have role because both Verified and Unverified will be removed when user leaves so need to synch roles
+                        SocketGuildUser socketUser = (SocketGuildUser)msg.Author;
+                        IEnumerable<SocketRole> userRoles = socketUser.Roles;
+
+                        foreach(SocketRole role in userRoles)
+                        {
+                             Globals.DiscordUsers[msg.Author.Id].Roles.Add(role.Id);
+                             Logger.WriteDebug("DiscordVerify added role: " + role.Name + " to User: " + msg.Author.Username);
+                        }
                     }
 
 					if(Globals.DiscordUsers.ContainsKey(msg.Author.Id))

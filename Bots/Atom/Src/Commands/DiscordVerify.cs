@@ -30,8 +30,11 @@ namespace Atom.Commands
 
                         foreach(SocketRole role in userRoles)
                         {
-                             Globals.DiscordUsers[msg.Author.Id].Roles.Add(role.Id);
-                             Logger.WriteDebug("DiscordVerify added role: " + role.Name + " to User: " + msg.Author.Username);
+                            if(!Globals.DiscordUsers[msg.Author.Id].Roles.Contains(role.Id))
+                            {
+                                Globals.DiscordUsers[msg.Author.Id].Roles.Add(role.Id);
+                                Logger.WriteDebug("DiscordVerify added role: " + role.Name + " to User: " + msg.Author.Username);
+                            }
                         }
                     }
 

@@ -103,7 +103,7 @@ namespace Nerva.Bots.Classes
 					{
 						if(socketGuildUser.Id == dictionaryUser.Id)
 						{
-							if(dictionaryUser.JoinedDate != socketGuildUser.JoinedAt)
+							if(dictionaryUser.JoinedDate != socketGuildUser.JoinedAt.Value.DateTime)
 							{
 								dictionaryUser.JoinedDate = socketGuildUser.JoinedAt.Value.DateTime;
 								Logger.WriteDebug("SyncRolesWithDiscord changed Guild Joined for Unverified User: " + dictionaryUser.UserName + " | New Date: " + dictionaryUser.JoinedDate.ToString());
@@ -116,7 +116,7 @@ namespace Nerva.Bots.Classes
 					{
 						if(socketGuildUser.Id == dictionaryUser.Id)
 						{
-							if(dictionaryUser.JoinedDate != socketGuildUser.JoinedAt)
+							if(dictionaryUser.JoinedDate != socketGuildUser.JoinedAt.Value.DateTime)
 							{
 								dictionaryUser.JoinedDate = socketGuildUser.JoinedAt.Value.DateTime;
 								Logger.WriteDebug("SyncRolesWithDiscord changed Guild Joined for Verified User: " + dictionaryUser.UserName + " | New Date: " + dictionaryUser.JoinedDate.ToString());
@@ -134,6 +134,7 @@ namespace Nerva.Bots.Classes
 						if(socketUser.Id == dictionaryUser.Id)
 						{
 							userUnverifiedInDiscord = true;
+                            break;
 						}
 					}
 
@@ -143,6 +144,7 @@ namespace Nerva.Bots.Classes
 						if(socketUser.Id == dictionaryUser.Id)
 						{
 							userVerifiedInDiscord = true;
+                            break;
 						}
 					}
 
@@ -151,10 +153,10 @@ namespace Nerva.Bots.Classes
 					if(userUnverifiedInDiscord)
 					{
 						// User has "Unverified" role in Discord
-						if(!dictionaryUser.Roles.Contains(roleUnverified.Id))
+						if(!dictionaryUser.Roles.Contains(Constants.UNVERIFIED_USER_ROLE_ID))
 						{
 							// But does not have "Unverified" role in Dictionary. Add role
-							dictionaryUser.Roles.Add(roleUnverified.Id);
+							dictionaryUser.Roles.Add(Constants.UNVERIFIED_USER_ROLE_ID);
 							if(!IsUserDictionaryChanged) IsUserDictionaryChanged = true;
 							Logger.WriteDebug("SyncRolesWithDiscord added Unverified role to User: " + dictionaryUser.UserName);
 						}
@@ -162,10 +164,10 @@ namespace Nerva.Bots.Classes
 					else 
 					{
 						// User does not have "Unverified" role in Discord
-						if(dictionaryUser.Roles.Contains(roleUnverified.Id))
+						if(dictionaryUser.Roles.Contains(Constants.UNVERIFIED_USER_ROLE_ID))
 						{
 							// But "Unverified" in dictionary. Remove role
-							dictionaryUser.Roles.Remove(roleUnverified.Id);
+							dictionaryUser.Roles.Remove(Constants.UNVERIFIED_USER_ROLE_ID);
 							if(!IsUserDictionaryChanged) IsUserDictionaryChanged = true;
 							Logger.WriteDebug("SyncRolesWithDiscord removed Unverified role from User: " + dictionaryUser.UserName);
 						}
@@ -175,10 +177,10 @@ namespace Nerva.Bots.Classes
 					if(userVerifiedInDiscord)
 					{
 						// User has "Verified" role in Discord
-						if(!dictionaryUser.Roles.Contains(roleVerified.Id))
+						if(!dictionaryUser.Roles.Contains(Constants.VERIFIED_USER_ROLE_ID))
 						{
 							// But does not have "Verified" role in Dictionary. Add role
-							dictionaryUser.Roles.Add(roleVerified.Id);
+							dictionaryUser.Roles.Add(Constants.VERIFIED_USER_ROLE_ID);
 							if(!IsUserDictionaryChanged) IsUserDictionaryChanged = true;
 							Logger.WriteDebug("SyncRolesWithDiscord added Verified role to User: " + dictionaryUser.UserName);
 						}
@@ -186,10 +188,10 @@ namespace Nerva.Bots.Classes
 					else 
 					{
 						// User does not have "Verified" role in Discord
-						if(dictionaryUser.Roles.Contains(roleVerified.Id))
+						if(dictionaryUser.Roles.Contains(Constants.VERIFIED_USER_ROLE_ID))
 						{
 							// But has "Verified" in dictionary. Remove role
-							dictionaryUser.Roles.Remove(roleVerified.Id);
+							dictionaryUser.Roles.Remove(Constants.VERIFIED_USER_ROLE_ID);
 							if(!IsUserDictionaryChanged) IsUserDictionaryChanged = true;
 							Logger.WriteDebug("SyncRolesWithDiscord removed Verified role from User: " + dictionaryUser.UserName);
 						}
@@ -201,5 +203,33 @@ namespace Nerva.Bots.Classes
 				Logger.HandleException(ex, "SyncRolesWithDiscord: ");
 			}	
 		}
+
+        public static void ResetUserWarnedDate(DiscordUser user)
+        {
+            try
+            {
+                Logger.WriteDebug("Resetting warned date for user: " + user.UserName);
+                user.WarnedDate = DateTime.MinValue;
+                Globals.IsUserDictionaryChanged = true;
+            }
+            catch (Exception ex)
+            {
+                Logger.HandleException(ex, "ResetUserWarnedDate: ");
+            }
+        }
+
+        public static void ResetUserKickedDate(DiscordUser user)
+        {
+            try
+            {
+                Logger.WriteDebug("Resetting kick date for user: " + user.UserName);
+                user.KickDate = DateTime.MinValue;
+                Globals.IsUserDictionaryChanged = true;
+            }
+            catch (Exception ex)
+            {
+                Logger.HandleException(ex, "ResetUserKickedDate: ");
+            }
+        }
     }
 }

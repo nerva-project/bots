@@ -395,26 +395,30 @@ namespace Nerva.Bots
 						{
 							// Reset values if user spoke/rejoined
 							if(user.WarnedDate != DateTime.MinValue)
-							{								
-								Logger.WriteDebug("KickProcess: Resetting warned date for user: " + user.UserName);
-								user.WarnedDate = DateTime.MinValue;
-								Globals.IsUserDictionaryChanged = true;
+							{
+								Globals.ResetUserWarnedDate(user);
+
 								SendDmToUser(user, "Hi. This is Atom Bot from Nerva server again. Your post has been noted. Thank you for choosing to stay with us!");
 							}
 
 							if(user.KickDate != DateTime.MinValue)
 							{
-								Logger.WriteDebug("KickProcess: Resetting kick date for user: " + user.UserName);
-								user.KickDate = DateTime.MinValue;
-								Globals.IsUserDictionaryChanged = true;
+								Globals.ResetUserKickedDate(user);
 							}
 						}
 					}
 					else if(isUnverified)
 					{
-						// Kick unverified user if not verified within 24 hours
+						if(user.JoinedDate > user.KickDate)
+						{
+							// User rejoined. Need to reset
+							Globals.ResetUserWarnedDate(user);
+							Globals.ResetUserKickedDate(user);
+						}
+						
 						if(user.KickDate == DateTime.MinValue && user.JoinedDate.AddDays(1) < DateTime.Now)
 						{
+							// Kick unverified user if not verified within 24 hours
 							Logger.WriteDebug("KickProcess: Kicking unverified user: " + user.UserName + " | Id: " + user.Id + " | Joined: " + user.JoinedDate.ToString());							
 							user.KickReason = "Unverified";
 							user.KickDate = DateTime.Now;

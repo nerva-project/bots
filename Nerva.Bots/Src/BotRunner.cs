@@ -409,7 +409,7 @@ namespace Nerva.Bots
 					}
 					else if(isUnverified)
 					{
-						if(user.JoinedDate > user.KickDate)
+						if(user.KickDate != DateTime.MinValue && user.JoinedDate > user.KickDate)
 						{
 							// User rejoined. Need to reset
 							Globals.ResetUserWarnedDate(user);

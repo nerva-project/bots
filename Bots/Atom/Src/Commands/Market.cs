@@ -48,18 +48,18 @@ namespace Atom.Commands
                     .WithAuthor("Market Information", Globals.Client.CurrentUser.GetAvatarUrl())
                     .WithDescription("The latest market information")
                     .WithColor(Color.DarkGreen)
-                    .WithThumbnailUrl(Globals.Client.CurrentUser.GetAvatarUrl());
+                    .WithThumbnailUrl("https://nerva.one/content/images/nerva-logo.png");
                     
-                    em.AddField("Market Cap (USD)", "$" + Math.Round((circulatingSupply * json.Price * btcPrice), 0), false);
-                    em.AddField("Market Cap (BTC)", "$" + Math.Round((circulatingSupply * json.Price), 2), false);
-                    em.AddField("Circulating Supply", Math.Round(circulatingSupply, 0) + " XNV", false);
+                    em.AddField("Market Cap (USD)", "$" + (circulatingSupply * json.Price * btcPrice).ToString("N0"), true);
+                    em.AddField("Market Cap (BTC)", (circulatingSupply * json.Price).ToString("N2") + "฿", false);
+                    
+                    em.AddField("Last Price (USD)", "$" + (json.Price * btcPrice).ToString("N4"), true);
+                    em.AddField("Last Price (BTC)", Math.Round(json.Price * 100000000.0d, 0) + " sat", false);
+                    
+                    em.AddField("Volume (USD)", "$" + (json.Volume * btcPrice), true);
+                    em.AddField("Volume (BTC)", Math.Round(json.Volume, 5) + " BTC", false);
 
-                    em.AddField("Last Price", Math.Round(json.Price * 100000000.0d, 0) + " sat", true); 
-                    em.AddField("Bid", Math.Round(json.Bid * 100000000.0d, 0) + " sat", true);
-                    em.AddField("Ask", Math.Round(json.Ask * 100000000.0d, 0) + " sat", true);
-                    em.AddField("Volume", Math.Round(json.Volume, 5) + " BTC", true);
-                    em.AddField("High", Math.Round(json.High * 100000000.0d, 0) + " sat", true);
-                    em.AddField("Low", Math.Round(json.Low * 100000000.0d, 0) + " sat", true);
+                    em.AddField("Circulating Supply", circulatingSupply.ToString("N0") + " XNV", false);
 
                     DiscordResponse.Reply(msg, embed: em.Build());
                 }

@@ -51,16 +51,16 @@ namespace Atom.Commands
                     .WithThumbnailUrl("https://nerva.one/content/images/nerva-logo.png");
                     
                     em.AddField("Market Cap (USD)", "$" + (circulatingSupply * json.Price * btcPrice).ToString("N0"), true);
-                    em.AddField("   |   ", "   |   ", true);
-                    em.AddField("Market Cap (BTC)", (circulatingSupply * json.Price).ToString("N2") + "฿", true);
+                    em.AddField(" | ", " | ", true);
+                    em.AddField("Market Cap (BTC)", (circulatingSupply * json.Price).ToString("N2") + " ₿", true);
                     
                     em.AddField("Last Price (USD)", "$" + (json.Price * btcPrice).ToString("N4"), true);
-                    em.AddField("   |   ", "   |   ", true);
+                    em.AddField(" | ", " | ", true);
                     em.AddField("Last Price (BTC)", Math.Round(json.Price * 100000000.0d, 0) + " sat", true);
                     
-                    em.AddField("Volume (USD)", "$" + (json.Volume * btcPrice).ToString("N2"), true);
-                    em.AddField("   |   ", "   |   ", true);
-                    em.AddField("Volume (BTC)", Math.Round(json.Volume, 5) + " BTC", true);
+                    em.AddField("24h Volume (USD)", "$" + (json.Volume * btcPrice).ToString("N2"), true);
+                    em.AddField(" | ", " | ", true);
+                    em.AddField("24h Volume (BTC)", Math.Round(json.Volume, 5) + " ₿", true);
 
                     em.AddField("Circulating Supply", circulatingSupply.ToString("N0") + " XNV", false);
 

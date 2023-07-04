@@ -32,7 +32,7 @@ namespace Nerva.Bots
 		private DateTime _userDictionarySavedTime = DateTime.Now;
 		private DateTime _lastKickProcessTime = DateTime.Now;
 
-		private Regex _verificationRegex = new Regex(@"i'?m?(.{0,10})?(\bnot\b|\bno\b)(.{0,10})?(spamm?er|scamm?er)");
+		private Regex _verificationRegex = new Regex(@"i'?m?(.{0,10})?(\bnot\b|\bno\b)(.{0,10})?(spamm?er|scamm?er)|(hi\s*(everyone|everybody|all)(.{0,10})?(pleased\s*to\s*be\s*here|how'?\s*i?s\s*it\s*going))");
 
 		private const int _keepAliveInterval = 60000;		// 1 minute
         [STAThread]

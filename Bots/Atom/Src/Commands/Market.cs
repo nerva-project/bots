@@ -31,7 +31,7 @@ namespace Atom.Commands
                 RequestData rdBtc = Request.Http("https://tradeogre.com/api/v1/ticker/btc-usdt");
                 if (!rdBtc.IsError)
                 {
-                    var json = JsonConvert.DeserializeObject<MarketInfoTO>(rdBtc.ResultString);
+                    var json = JsonConvert.DeserializeObject<MarketInfo>(rdBtc.ResultString);
                     btcPrice = Convert.ToDouble(json.Price);
                 }
                 else 
@@ -68,7 +68,7 @@ namespace Atom.Commands
                 rdXnv = Request.Http("https://tradeogre.com/api/v1/ticker/xnv-usdt");            
                 if (!rdXnv.IsError)
                 {
-                    var json = JsonConvert.DeserializeObject<MarketInfoTO>(rdXnv.ResultString);
+                    var json = JsonConvert.DeserializeObject<MarketInfo>(rdXnv.ResultString);
 
                     priceUsdtTO = json.Price;
                     volumeUsdtTO = json.Volume;
@@ -82,7 +82,7 @@ namespace Atom.Commands
                 rdXnv = Request.Http("https://tradeogre.com/api/v1/ticker/xnv-btc");            
                 if (!rdXnv.IsError)
                 {
-                    var json = JsonConvert.DeserializeObject<MarketInfoTO>(rdXnv.ResultString);
+                    var json = JsonConvert.DeserializeObject<MarketInfo>(rdXnv.ResultString);
 
                     priceBtcTO = json.Price;
                     volumeBtcTO = json.Volume;

@@ -50,7 +50,7 @@ namespace Atom
     }
 
     [JsonObject]
-    public class MarketInfoTO
+    public class MarketInfo
     {
         [JsonProperty("price")]
         public double Price { get; set; }

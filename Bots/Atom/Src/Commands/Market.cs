@@ -112,7 +112,7 @@ namespace Atom.Commands
                     
                     em.AddField("Last Price (USDT)", "$" + averagePrice.ToString("N4"), true);
                     em.AddField(" | ", " | ", true);
-                    em.AddField("Last Price (BTC)", Math.Round(averagePrice / btcPrice, 0) + " sat", true);
+                    em.AddField("Last Price (BTC)", Math.Round((averagePrice / btcPrice) * 100000000.0d, 0) + " sat", true);
                     
                     em.AddField("24h Volume (USDT)", "$" + totalVolume.ToString("N2"), true);
                     em.AddField(" | ", " | ", true);

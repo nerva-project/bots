@@ -50,7 +50,7 @@ namespace Atom
     }
 
     [JsonObject]
-    public class MarketInfo
+    public class MarketInfoTO
     {
         [JsonProperty("price")]
         public double Price { get; set; }
@@ -69,6 +69,15 @@ namespace Atom
 
         [JsonProperty("low")]
         public double Low { get; set; }
+    }
+
+        public class MarketInfoXE
+    {
+        [JsonProperty("lastPrice")]
+        public double LastPrice { get; set; }
+
+        [JsonProperty("volumeUsdNumber")]
+        public double VolumeUsdt { get; set; }
     }
 
     [JsonObject]

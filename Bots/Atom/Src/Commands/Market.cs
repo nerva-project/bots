@@ -31,7 +31,7 @@ namespace Atom.Commands
                 RequestData rdBtc = Request.Http("https://tradeogre.com/api/v1/ticker/btc-usdt");
                 if (!rdBtc.IsError)
                 {
-                    var json = JsonConvert.DeserializeObject<MarketInfo>(rdBtc.ResultString);
+                    var json = JsonConvert.DeserializeObject<MarketInfoTO>(rdBtc.ResultString);
                     btcPrice = Convert.ToDouble(json.Price);
                 }
                 else 
@@ -39,28 +39,84 @@ namespace Atom.Commands
                     Logger.WriteError("Market:BTC Error String: " + rdBtc.ErrorString);
                 }
 
-                RequestData rdXnv = Request.Http("https://tradeogre.com/api/v1/ticker/xnv-btc");            
+
+                double priceBtcTO = 0;
+                double volumeBtcTO = 0;
+
+                double priceUsdtTO = 0;
+                double volumeUsdtTO = 0;
+
+                double priceUsdtXE = 0;
+                double volumeUsdtXE = 0;
+
+                int ct = 0;
+
+                RequestData rdXnv = Request.Http("https://api.xeggex.com/api/v2/market/getbysymbol/XNV_USDT");            
                 if (!rdXnv.IsError)
                 {
-                    var json = JsonConvert.DeserializeObject<MarketInfo>(rdXnv.ResultString);
+                    var json = JsonConvert.DeserializeObject<MarketInfoXE>(rdXnv.ResultString);
 
+                    priceUsdtXE = json.LastPrice;
+                    volumeUsdtXE = json.VolumeUsdt;
+                    ct++;
+                }
+                else
+                {
+                    Logger.WriteError("Market:XE XNV_USDT Error String: " + rdXnv.ErrorString);
+                }
+
+                rdXnv = Request.Http("https://tradeogre.com/api/v1/ticker/xnv-usdt");            
+                if (!rdXnv.IsError)
+                {
+                    var json = JsonConvert.DeserializeObject<MarketInfoTO>(rdXnv.ResultString);
+
+                    priceUsdtTO = json.Price;
+                    volumeUsdtTO = json.Volume;
+                    ct++;
+                }
+                else
+                {
+                    Logger.WriteError("Market:TO XNV_USDT Error String: " + rdXnv.ErrorString);
+                }
+
+                rdXnv = Request.Http("https://tradeogre.com/api/v1/ticker/xnv-btc");            
+                if (!rdXnv.IsError)
+                {
+                    var json = JsonConvert.DeserializeObject<MarketInfoTO>(rdXnv.ResultString);
+
+                    priceBtcTO = json.Price;
+                    volumeBtcTO = json.Volume;
+                    ct++;
+                }
+                else
+                {
+                    Logger.WriteError("Market:TO XNV_BTC Error String: " + rdXnv.ErrorString);
+                }
+
+
+                // For now just get average last price of 3 markets. Price is in USDT
+                double averagePrice = (priceUsdtXE + priceUsdtTO + (priceBtcTO * btcPrice)) / ct;
+                double totalVolume = volumeUsdtXE + volumeUsdtTO + (volumeBtcTO * btcPrice);
+        
+                if (averagePrice > 0)
+                {
                     var em = new EmbedBuilder()
                     .WithAuthor("Market Information", Globals.Client.CurrentUser.GetAvatarUrl())
                     .WithDescription("The latest market information")
                     .WithColor(Color.DarkGreen)
                     .WithThumbnailUrl("https://nerva.one/content/images/nerva-logo.png");
                     
-                    em.AddField("Market Cap (USD)", "$" + (circulatingSupply * json.Price * btcPrice).ToString("N0"), true);
+                    em.AddField("Market Cap (USDT)", "$" + (circulatingSupply * averagePrice).ToString("N0"), true);
                     em.AddField(" | ", " | ", true);
-                    em.AddField("Market Cap (BTC)", (circulatingSupply * json.Price).ToString("N2") + " ₿", true);
+                    em.AddField("Market Cap (BTC)", (circulatingSupply * (averagePrice / btcPrice)).ToString("N2") + " ₿", true);
                     
-                    em.AddField("Last Price (USD)", "$" + (json.Price * btcPrice).ToString("N4"), true);
+                    em.AddField("Last Price (USDT)", "$" + averagePrice.ToString("N4"), true);
                     em.AddField(" | ", " | ", true);
-                    em.AddField("Last Price (BTC)", Math.Round(json.Price * 100000000.0d, 0) + " sat", true);
+                    em.AddField("Last Price (BTC)", Math.Round(averagePrice / 100000000.0d, 0) + " sat", true);
                     
-                    em.AddField("24h Volume (USD)", "$" + (json.Volume * btcPrice).ToString("N2"), true);
+                    em.AddField("24h Volume (USDT)", "$" + (totalVolume * btcPrice).ToString("N2"), true);
                     em.AddField(" | ", " | ", true);
-                    em.AddField("24h Volume (BTC)", Math.Round(json.Volume, 5) + " ₿", true);
+                    em.AddField("24h Volume (BTC)", Math.Round(totalVolume, 5) + " ₿", true);
 
                     em.AddField("Circulating Supply", circulatingSupply.ToString("N0") + " XNV", false);
 
@@ -68,7 +124,7 @@ namespace Atom.Commands
                 }
                 else 
                 {
-                    Logger.WriteError("Market:XNV Error String: " + rdXnv.ErrorString);
+                    Logger.WriteError("Market:XNV Error Average Price is 0 :()");
                 }
             }
             catch(Exception ex)

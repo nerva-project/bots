@@ -25,7 +25,7 @@ namespace Atom.Commands
                     StringBuilder sb = new StringBuilder();
 
                     sb.AppendLine($"Windows: [CLI](https://github.com/nerva-project/nerva/releases/download/v0.1.8.0/nerva-v0.1.8.0_windows_minimal.zip) | [GUI](https://github.com/nerva-project/nerva-gui/releases/download/v0.3.3.0/nerva-gui-v0.3.3.0_win-x64.zip)");
-                    sb.AppendLine($"Linux: [CLI](https://github.com/nerva-project/nerva/releases/download/v0.1.8.0/nerva-v0.1.8.0_linux_minimal.zip}) | [GUI](https://github.com/nerva-project/nerva-gui/releases/download/v0.3.3.0/nerva-gui-v0.3.3.0_linux-x64.zip)");
+                    sb.AppendLine($"Linux: [CLI](https://github.com/nerva-project/nerva/releases/download/v0.1.8.0/nerva-v0.1.8.0_linux_minimal.zip) | [GUI](https://github.com/nerva-project/nerva-gui/releases/download/v0.3.3.0/nerva-gui-v0.3.3.0_linux-x64.zip)");
                     sb.AppendLine($"MacOS: [CLI](https://github.com/nerva-project/nerva/releases/download/v0.1.8.0/nerva-v0.1.8.0_osx_minimal.zip) | [GUI](https://github.com/nerva-project/nerva-gui/releases/download/v0.3.3.0/nerva-gui-v0.3.3.0_osx-x64.zip)");
 
                     em.AddField($"Nerva Tools", sb.ToString());

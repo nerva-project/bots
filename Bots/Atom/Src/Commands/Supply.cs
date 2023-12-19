@@ -18,7 +18,7 @@ namespace Atom.Commands
                 if (!rd.IsError)
                 {
                     double coins = Convert.ToDouble(rd.ResultString);
-                    DiscordResponse.Reply(msg, text: $"Current Supply: {coins}");
+                    DiscordResponse.Reply(msg, text: $"Current Supply: {coins.ToString("N0")}");
                 }
             }
             catch(Exception ex)

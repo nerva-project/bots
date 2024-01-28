@@ -93,7 +93,7 @@ namespace Atom.Commands
                             else
                             {
                                 // Assume brand new user
-                                DiscordResponse.Reply(msg, text: "Welcome <@" + msg.Author.Id + ">! You're now verified. Here is your first XNV: $tip 1.00. See <#466873635638870016> channel for help with funds.");
+                                DiscordResponse.Reply(msg, text: "<@474841349968101386> tip 1.00 XNV <@" + msg.Author.Id + ">. Welcome! You're now verified. Here is your first XNV. See <#1199696567993630812> channel for help with funds.");
                                 Logger.WriteDebug("DiscordVerify welcomed new user: " + msg.Author.Username);
                             }
                         }

@@ -273,8 +273,11 @@ namespace Nerva.Bots
 				if(_banUserNameRegex.IsMatch(user2.GlobalName.ToLower()))
 				{
 					await Logger.WriteDebug("Banning user: " + user2.GlobalName);
+					string banReason = "User changed to unwanted display name";
 
-					// TODO: Ban user
+					IGuild guild = Globals.Client.GetGuild(Globals.Bot.Config.ServerId);
+					var guildUser = guild.GetUserAsync(user2.Id).Result;
+					BanUser(guildUser, banReason);
 				}
 			}
 			catch (Exception ex)
@@ -293,8 +296,11 @@ namespace Nerva.Bots
 				if(_banUserNameRegex.IsMatch(user.DisplayName.ToLower()))
 				{
 					await Logger.WriteDebug("Banning user: " + user.DisplayName);
+					string banReason = "User joined with unwanted display name";
 
-					// TODO: Ban user
+					IGuild guild = Globals.Client.GetGuild(Globals.Bot.Config.ServerId);
+					var guildUser = guild.GetUserAsync(user.Id).Result;
+					BanUser(user, banReason);
 				}
 			}
 			catch (Exception ex)
@@ -496,6 +502,23 @@ namespace Nerva.Bots
 			catch (Exception ex)
 			{
 				Logger.HandleException(ex, "KickUser: ");
+			}
+			finally
+			{
+				// Don't go too fast
+				System.Threading.Thread.Sleep(1000);
+			}
+		}
+
+		private void BanUser(IGuildUser userToBan, string reason)
+		{
+			try
+			{
+				userToBan.BanAsync(1, reason);
+			}
+			catch (Exception ex)
+			{
+				Logger.HandleException(ex, "BanUser: ");
 			}
 			finally
 			{

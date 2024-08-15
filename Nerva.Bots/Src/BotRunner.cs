@@ -268,11 +268,11 @@ namespace Nerva.Bots
         {
             try
 			{
-				await Logger.WriteDebug("User changed name from " + user1.Username + " to " + user2.Username);
+				await Logger.WriteDebug("User changed name from " + user1.GlobalName + " to " + user2.GlobalName);
 
-				if(_banUserNameRegex.IsMatch(user2.Username.ToLower()))
+				if(_banUserNameRegex.IsMatch(user2.GlobalName.ToLower()))
 				{
-					await Logger.WriteDebug("Banning user: " + user2.Username);
+					await Logger.WriteDebug("Banning user: " + user2.GlobalName);
 
 					// TODO: Ban user
 				}

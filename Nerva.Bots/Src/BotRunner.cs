@@ -33,6 +33,7 @@ namespace Nerva.Bots
 		private DateTime _lastKickProcessTime = DateTime.Now;
 
 		private Regex _verificationRegex = new Regex(@"(\bnot\b|\bno\b)(.{0,10})?(spamm?er|scamm?er)|(hi\s*(everyone|everybody|all)(.{0,10})?((pleased|happy)\s*to\s*be\s*here|how'?\s*i?s\s*it\s*going))");
+		private Regex _banUserNameRegex = new Regex(@"announcement");
 
 		private const int _keepAliveInterval = 60000;		// 1 minute
         [STAThread]
@@ -201,6 +202,8 @@ namespace Nerva.Bots
 						_client.StartAsync();
 
 						_client.MessageReceived += MessageReceived;
+						_client.UserJoined += UserJoined;
+						_client.UserUpdated += UserUpdated;
 						_client.Ready += ClientReady;
 						_client.Disconnected += (e) =>
 						{
@@ -261,7 +264,46 @@ namespace Nerva.Bots
             }
         }
 
-		private async Task ClientReady()
+        private async Task UserUpdated(SocketUser user1, SocketUser user2)
+        {
+            try
+			{
+				await Logger.WriteDebug("User changed name from " + user1.Username + " to " + user2.Username);
+
+				if(_banUserNameRegex.IsMatch(user2.Username.ToLower()))
+				{
+					await Logger.WriteDebug("Banning user: " + user2.Username);
+
+					// TODO: Ban user
+				}
+			}
+			catch (Exception ex)
+			{
+				await Logger.HandleException(ex);
+			}
+        }
+
+
+        private async Task UserJoined(SocketGuildUser user)
+        {
+			try
+			{
+				await Logger.WriteDebug("New user joined: " + user.DisplayName);
+
+				if(_banUserNameRegex.IsMatch(user.DisplayName.ToLower()))
+				{
+					await Logger.WriteDebug("Banning user: " + user.DisplayName);
+
+					// TODO: Ban user
+				}
+			}
+			catch (Exception ex)
+			{
+				await Logger.HandleException(ex);
+			}
+        }
+
+        private async Task ClientReady()
 		{
 			await Globals.Bot.ClientReady();
 		}

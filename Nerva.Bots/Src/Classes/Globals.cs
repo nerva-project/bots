@@ -35,18 +35,15 @@ namespace Nerva.Bots.Classes
                 // Loop through users and load them to user object
                 foreach (var user in users)
                 {
-                    SocketGuildUser socketUser = (SocketGuildUser)user;
-                    IEnumerable<SocketRole> userRoles = socketUser.Roles;
-
-                    if(!socketUser.IsBot)
+                    if(!user.IsBot)
                     {
-                        if(!Globals.DiscordUsers.ContainsKey(socketUser.Id))
+                        if(!Globals.DiscordUsers.ContainsKey(user.Id))
                         {
-                            Globals.AddUserToDictionary(socketUser);								
+                            Globals.AddUserToDictionary(user);								
                         }
                     }
-                
-                    //Logger.WriteDebug("User Name: " + socketUser.Username + " | Discriminator: " + socketUser.Discriminator + " | Id: " + socketUser.Id + " | Joined: " + socketUser.JoinedAt.ToString() + " | IsBot: " + socketUser.IsBot + " | Roles: " + stringRoles);					
+
+					Logger.WriteDebug("User Name: " + user.Username + " | Discriminator: " + user.Discriminator + " | Id: " + user.Id + " | Joined: " + user.JoinedAt.ToString() + " | IsBot: " + user.IsBot);                    
                 }
             }
             catch (Exception ex)

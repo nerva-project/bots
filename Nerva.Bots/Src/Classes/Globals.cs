@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using Discord;
+using Discord.Rest;
 using Discord.WebSocket;
 using Nerva.Bots.Helpers;
 using Nerva.Bots.Plugin;
@@ -43,7 +44,7 @@ namespace Nerva.Bots.Classes
                         }
                     }
 
-					Logger.WriteDebug("User Name: " + user.Username + " | Discriminator: " + user.Discriminator + " | Id: " + user.Id + " | Joined: " + user.JoinedAt.ToString() + " | IsBot: " + user.IsBot);                    
+					//Logger.WriteDebug("User Name: " + user.Username + " | Id: " + user.Id + " | Joined: " + user.JoinedAt.ToString() + " | IsBot: " + user.IsBot);                    
                 }
             }
             catch (Exception ex)
@@ -57,25 +58,49 @@ namespace Nerva.Bots.Classes
 			{
 				if(!Globals.DiscordUsers.ContainsKey(user.Id))
 				{
-					SocketGuildUser socketUser = (SocketGuildUser)user;
-					IEnumerable<SocketRole> userRoles = socketUser.Roles;
-
-					// Add new user to dictionary
-					DiscordUser newUser = new DiscordUser();
-					newUser.Id = user.Id;
-					newUser.UserName = user.Username;
-					newUser.Discriminator = user.Discriminator;
-					// JoinedDate will be inaccurate for some calls to this methods as it will be Discord joined date.
-					// For now, this will be set in SyncRolesWithDiscord()
-					//newUser.JoinedDate = user.CreatedAt.DateTime;
-
-					newUser.Roles = new List<ulong>();
-					foreach(SocketRole role in userRoles)
+					if(user is RestGuildUser)
 					{
-						newUser.Roles.Add(role.Id);
-					}
+						RestGuildUser restUser = (RestGuildUser)user;
+						IEnumerable<ulong> userRoles = restUser.RoleIds;
 
-					Globals.DiscordUsers.Add(user.Id, newUser);
+                        // Add new user to dictionary
+                        DiscordUser newUser = new DiscordUser
+                        {
+                            Id = user.Id,
+                            UserName = user.Username,
+                            Discriminator = user.Discriminator,
+
+                            Roles = new List<ulong>()
+                        };
+                        foreach (ulong role in userRoles)
+						{
+							newUser.Roles.Add(role);
+						}
+
+						Globals.DiscordUsers.Add(user.Id, newUser);
+					}
+					else
+					{
+						SocketGuildUser socketUser = (SocketGuildUser)user;
+						IEnumerable<SocketRole> userRoles = socketUser.Roles;
+
+						// Add new user to dictionary
+						DiscordUser newUser = new DiscordUser();
+						newUser.Id = user.Id;
+						newUser.UserName = user.Username;
+						newUser.Discriminator = user.Discriminator;
+						// JoinedDate will be inaccurate for some calls to this methods as it will be Discord joined date.
+						// For now, this will be set in SyncRolesWithDiscord()
+						//newUser.JoinedDate = user.CreatedAt.DateTime;
+
+						newUser.Roles = new List<ulong>();
+						foreach(SocketRole role in userRoles)
+						{
+							newUser.Roles.Add(role.Id);
+						}
+
+						Globals.DiscordUsers.Add(user.Id, newUser);
+					}
 				}
 			}
 			catch (Exception ex)
